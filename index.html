@@ -77,7 +77,6 @@
     <div id="ui-layer">
         
         <!-- ==================== CHARACTER ENTRY / PROFILE MODAL ==================== -->
-        <!-- Acts as both the login screen and the "Change Character" screen -->
         <div id="profile-modal" class="interactive-ui fixed inset-0 bg-emerald-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative transition-all">
                 <button id="btn-close-profile" class="hidden-panel absolute top-4 right-4 text-emerald-400 hover:text-emerald-700 transition-colors"><i class="fas fa-times text-xl"></i></button>
@@ -340,17 +339,49 @@
             if (el) el.addEventListener(eventType, handler);
         };
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const app = initializeApp(firebaseConfig); 
-        const auth = getAuth(app); 
-        const db = getFirestore(app);
+        // --- ⚡ FALLBACK / OFFLINE LOGIC (FIX FOR GITHUB PAGES) ⚡ ---
+        let app, auth, db;
+        let isOffline = false;
+        
+        // Local DB setup for offline fallback
+        let localDB = JSON.parse(localStorage.getItem('nature3DLocalDB')) || { rooms: [], decorations: [], messages: [], wishes: [] };
+        const saveLocalDB = () => localStorage.setItem('nature3DLocalDB', JSON.stringify(localDB));
+        const generateId = () => Math.random().toString(36).substring(2, 9);
+
+        try {
+            // HOW TO USE MULTIPLAYER ON GITHUB PAGES:
+            // 1. ไปที่ Firebase Console สร้างโปรเจกต์ > Firestore > เริ่มแบบ Test Mode
+            // 2. ไปที่ Authentication > เปิด Anonymous (ไม่ระบุตัวตน)
+            // 3. ก๊อปปี้ Config ของคุณมาวางแทนที่ปีกกา {} ด้านล่างนี้
+            const myCustomFirebaseConfig = {
+                // apiKey: "AIzaSyxxxxxx...",
+                // authDomain: "your-app.firebaseapp.com",
+                // projectId: "your-app",
+                // storageBucket: "your-app.appspot.com",
+                // messagingSenderId: "123456",
+                // appId: "1:123456:web:xxxxxx"
+            }; 
+            
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myCustomFirebaseConfig;
+            
+            // ถ้าไม่ใส่ Config จะโยน Error ไปเข้าโหมด Offline
+            if (Object.keys(firebaseConfig).length === 0) throw new Error("No Firebase Config");
+            
+            app = initializeApp(firebaseConfig); 
+            auth = getAuth(app); 
+            db = getFirestore(app);
+        } catch (e) {
+            console.warn("⚠️ ไม่พบ Firebase Config: เกมจะเข้าสู่โหมดออฟไลน์ (Local Mode) อัตโนมัติ");
+            isOffline = true;
+        }
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'safe-space-v6-simple';
 
         // --- Core States ---
         let currentUser = null;
         const playerColors = [{id:'peach',hex:'#ffeebb'},{id:'mint',hex:'#a7f3d0'},{id:'sky',hex:'#bae6fd'},{id:'rose',hex:'#fecdd3'},{id:'lav',hex:'#e9d5ff'},{id:'sun',hex:'#fef08a'}];
+        const natureNames = ["น้องใบไม้","พี่ก้อนเมฆ","สายลม","ต้นโอ๊ก","ดอกหญ้า","หยดน้ำ","แสงแดด","ภูเขา","แม่น้ำ","นกน้อย"];
         
-        // Auto-load saved identity
         let myDisplayName = localStorage.getItem('nature3DName') || ''; 
         let myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
 
@@ -427,8 +458,8 @@
         }
         scene.add(trunkI, leafI);
 
-        const houseMeshes = []; const decorMeshes = []; const specialObjects = [];
-        let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = true; // start open for login
+        const houseMeshes = []; const decorMeshes = []; const specialObjects = []; const npcArray = [];
+        let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = true; 
         let playerTarget = new THREE.Vector3(0,0,0); let isMovingToClick = false; const playerSpeed = 0.15;
 
         // Special Objects
@@ -497,7 +528,14 @@
                 if(hits.length>0) {
                     let r=hits[0].object; while(r.parent&&r.parent!==scene) r=r.parent;
                     if(r.userData && r.userData.creatorId===currentUser?.uid){ 
-                        try{ await deleteDoc(doc(db,'artifacts',appId,'public','data', r.userData.type==='house'?'rooms':'decorations', r.userData.id||r.userData.roomId)); r.visible=false; }catch(err){}
+                        if(isOffline) {
+                            const delId = r.userData.id||r.userData.roomId;
+                            if(r.userData.type==='house') localDB.rooms = localDB.rooms.filter(x=>x.id!==delId);
+                            else localDB.decorations = localDB.decorations.filter(x=>x.id!==delId);
+                            saveLocalDB(); r.visible=false;
+                        } else {
+                            try{ await deleteDoc(doc(db,'artifacts',appId,'public','data', r.userData.type==='house'?'rooms':'decorations', r.userData.id||r.userData.roomId)); r.visible=false; }catch(err){}
+                        }
                     }
                 } return;
             }
@@ -508,9 +546,14 @@
                     playerTarget.copy(pt); isMovingToClick=true; targetMarker.position.copy(pt); targetMarker.position.y=0.05; targetMarker.visible=true; targetMarker.scale.setScalar(1); playerGroup.lookAt(pt.x, playerGroup.position.y, pt.z);
                 } else if(buildMode==='road'||buildMode==='fence'||buildMode==='flower') {
                     const sX=buildMode==='flower'?pt.x:Math.round(pt.x/2)*2, sZ=buildMode==='flower'?pt.z:Math.round(pt.z/2)*2;
-                    const payload={type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt: serverTimestamp()};
+                    const payload={type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt: isOffline ? Date.now() : serverTimestamp()};
                     if(buildMode==='flower') payload.color=['0xff69b4','0xffd700','0xdda0dd','0x87cefa','0xff4500'][Math.floor(Math.random()*5)];
-                    try{ await addDoc(collection(db,'artifacts',appId,'public','data','decorations'), payload); }catch(err){}
+                    
+                    if(isOffline) {
+                        payload.id = generateId(); localDB.decorations.push(payload); saveLocalDB(); syncDecors(localDB.decorations);
+                    } else {
+                        try{ await addDoc(collection(db,'artifacts',appId,'public','data','decorations'), payload); }catch(err){}
+                    }
                 }
             }
         });
@@ -541,7 +584,7 @@
 
         // Network Logic (Firebase)
         function syncMultiplayer() {
-            if(!currentUser || !myDisplayName) return;
+            if(isOffline || !currentUser || !myDisplayName) return;
             const now = Date.now();
             if(now - lastPosSync > SYNC_RATE) {
                 lastPosSync = now;
@@ -595,7 +638,11 @@
         document.querySelectorAll('.emote-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if(!currentUser || !myDisplayName) return; const e = btn.dataset.emote;
-                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), { emote: e, emoteTime: Date.now() }, {merge:true});
+                if (isOffline) {
+                    const h = document.createElement('div'); h.innerHTML = e; h.className = 'floating-heart text-2xl'; h.style.left = '50%'; h.style.top = '40%'; document.body.appendChild(h); setTimeout(() => h.remove(), 2000);
+                } else {
+                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), { emote: e, emoteTime: Date.now() }, {merge:true});
+                }
             });
         });
 
@@ -662,6 +709,29 @@
                 const x = (tempV.x * .5 + .5) * window.innerWidth; const y = (tempV.y * -.5 + .5) * window.innerHeight;
                 if(tempV.z < 1) { p.labelElement.style.display = 'flex'; p.labelElement.style.left = `${x}px`; p.labelElement.style.top = `${y}px`; }
                 else p.labelElement.style.display = 'none';
+            }
+            
+            // Offline Mode NPC dummy animation
+            if (isOffline) {
+                npcArray.forEach(npc => {
+                    npc.timer -= 1;
+                    if(npc.timer <= 0) {
+                        if(npc.state === 'idle') {
+                            npc.state = 'moving'; npc.timer = 100 + Math.random() * 200;
+                            npc.target.set(npc.mesh.position.x + (Math.random()-0.5)*15, 0, npc.mesh.position.z + (Math.random()-0.5)*15);
+                            npc.mesh.lookAt(npc.target);
+                        } else { npc.state = 'idle'; npc.timer = 100 + Math.random() * 200; }
+                    }
+                    if(npc.state === 'moving') {
+                        const dist = npc.mesh.position.distanceTo(npc.target);
+                        if(dist > 0.1) {
+                            const dir = new THREE.Vector3().subVectors(npc.target, npc.mesh.position).normalize();
+                            npc.mesh.position.add(dir.multiplyScalar(0.05));
+                            npc.mesh.children[0].position.y = 0.65 + Math.abs(Math.sin(time*0.01))*0.15;
+                            npc.mesh.children[1].position.y = 1.3 + Math.abs(Math.sin(time*0.01))*0.15;
+                        } else { npc.state = 'idle'; }
+                    } else { npc.mesh.children[0].position.y = 0.65; npc.mesh.children[1].position.y = 1.3; }
+                });
             }
 
             if (!isUIOpen && buildMode==='walk') {
@@ -735,14 +805,33 @@
             });
         }
 
-        // ---------------- SIMPLE "NO PASSWORD" LOGIN LOGIC ----------------
-        
         // Game Listeners Wrapper
         function startGameListeners() {
             const ol = document.getElementById('loading-overlay');
             if(ol) { ol.style.opacity='0'; setTimeout(()=>ol.classList.add('hidden-panel'),500); }
             stopGameListeners();
             
+            if (isOffline) {
+                // ออฟไลน์: โหลดข้อมูลจากเครื่อง
+                syncHouses(localDB.rooms);
+                syncDecors(localDB.decorations);
+                wishesData = [...localDB.wishes].sort((a,b)=> b.createdAt - a.createdAt);
+                renderWishes();
+                
+                // ใส่ NPC ให้หมู่บ้านไม่เหงาในโหมดออฟไลน์
+                if(npcArray.length === 0) {
+                    for(let i=0; i<4; i++) {
+                        const npc = createPlayerMesh(playerColors[Math.floor(Math.random()*playerColors.length)].hex);
+                        npc.position.set((Math.random() - 0.5) * 40, 0, (Math.random() - 0.5) * 40);
+                        scene.add(npc);
+                        npcArray.push({ mesh: npc, target: npc.position.clone(), state: 'idle', timer: 0 });
+                    }
+                }
+                if(!isAnimating) { isAnimating = true; animate(); }
+                return;
+            }
+
+            // ออนไลน์: เชื่อมต่อ Firebase
             unsubRooms = onSnapshot(collection(db,'artifacts',appId,'public','data','rooms'), s => { const r=[]; s.forEach(d=>r.push({id:d.id,...d.data()})); roomsData=r; syncHouses(r); });
             unsubDecors = onSnapshot(collection(db,'artifacts',appId,'public','data','decorations'), s => { const d=[]; s.forEach(x=>d.push({id:x.id,...x.data()})); syncDecors(d); });
             unsubWishes = onSnapshot(collection(db,'artifacts',appId,'public','data','wishes'), s => { const w=[]; s.forEach(d=>w.push({id:d.id,...d.data()})); wishesData=w.sort((a,b)=>(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0)); renderWishes(); });
@@ -760,7 +849,6 @@
 
         // App Initialization
         window.onload = async () => {
-            // Check local storage for existing identity
             myDisplayName = localStorage.getItem('nature3DName') || '';
             myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
 
@@ -770,33 +858,36 @@
             const pSave = document.getElementById('btn-save-profile');
 
             if (!myDisplayName) {
-                // Must enter name first
                 setModal(profModal, true);
                 if(btnCloseProf) btnCloseProf.classList.add('hidden-panel');
                 if(pTitle) pTitle.innerText = 'สร้างตัวละครใหม่';
                 if(pSave) pSave.innerText = 'เข้าสู่หมู่บ้าน';
-                // Stop loading overlay immediately since we need input
                 const ol = document.getElementById('loading-overlay');
                 if(ol) ol.classList.add('hidden-panel');
             } else {
-                // Have name, hide profile modal, wait for Firebase
                 setModal(profModal, false);
+            }
+
+            if (isOffline) {
+                currentUser = { uid: 'local_user_' + Math.floor(Math.random()*1000) };
+                if (myDisplayName) {
+                    updateId();
+                    startGameListeners();
+                }
+                return; // หยุดทำงานแค่นี้ ไม่ต้องรัน Firebase ต่อ
             }
 
             try { 
                 if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token); 
                 } else {
-                    await signInAnonymously(auth); // Use Anonymous Auth to allow immediate playing without passwords
+                    await signInAnonymously(auth);
                 }
-            } catch(e) {
-                console.error("Auth error:", e);
-            }
+            } catch(e) {}
 
             onAuthStateChanged(auth, async (user) => {
                 if(user) {
                     currentUser = user;
-                    // If name is already set locally, we start directly
                     if (myDisplayName) {
                         updateId();
                         startGameListeners();
@@ -807,12 +898,11 @@
             });
         };
 
-        // --- Save / Update Profile (Login / Change Character) ---
+        // --- Save / Update Profile ---
         bindEvent('btn-show-profile', 'click', () => {
             const pName = document.getElementById('profile-name');
             if(pName) pName.value = myDisplayName;
             
-            // Re-check color radio
             document.querySelectorAll('input[name="p_col"]').forEach(r => {
                 if(r.value === myColorHex) r.checked = true;
             });
@@ -823,7 +913,7 @@
             const pSave = document.getElementById('btn-save-profile');
             
             setModal(profModal, true);
-            if(btnCloseProf) btnCloseProf.classList.remove('hidden-panel'); // Can close because they already have a character
+            if(btnCloseProf) btnCloseProf.classList.remove('hidden-panel');
             if(pTitle) pTitle.innerText = 'เปลี่ยนตัวละคร';
             if(pSave) pSave.innerText = 'บันทึกการเปลี่ยนแปลง';
         });
@@ -849,8 +939,7 @@
             updateId(); 
             setModal(document.getElementById('profile-modal'), false); 
             
-            // If they are anonymous and just created a character, start listening to DB
-            if(currentUser && !isAnimating) {
+            if((currentUser || isOffline) && !isAnimating) {
                 startGameListeners();
             }
         });
@@ -878,6 +967,15 @@
                 if(!q||!o1||!o2) return alert("กรุณากรอกข้อมูลให้ครบถ้วน"); qD={q,options:[o1,o2],correctIndex:0}; 
             }
             const btn=e.target.querySelector('button[type="submit"]'); if(btn) { btn.disabled=true; btn.innerText="กำลังสร้าง..."; }
+            
+            if (isOffline) {
+                localDB.rooms.push({id: generateId(), name:nm, description:dsc, style:st, hasQuiz:hq, quizData:qD, creatorId:currentUser?.uid, createdAt: Date.now()});
+                saveLocalDB(); syncHouses(localDB.rooms);
+                setModal(document.getElementById('create-modal'),false); e.target.reset(); const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel');
+                if(btn) { btn.disabled=false; btn.innerText="สร้างบ้านและวางลงในพื้นที่"; }
+                return;
+            }
+
             try{ 
                 await addDoc(collection(db,'artifacts',appId,'public','data','rooms'), {name:nm,description:dsc,style:st,hasQuiz:hq,quizData:qD,creatorId:currentUser?.uid,createdAt:serverTimestamp()}); 
                 setModal(document.getElementById('create-modal'),false); e.target.reset(); const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel'); 
@@ -887,7 +985,9 @@
 
         // Enter Room & Interactions
         bindEvent('prompt-enter-btn', 'click', () => {
-            if(!hoveredHouseId)return; const rd=roomsData.find(r=>r.id===hoveredHouseId); if(!rd)return;
+            if(!hoveredHouseId)return; 
+            const rList = isOffline ? localDB.rooms : roomsData;
+            const rd = rList.find(r=>r.id===hoveredHouseId); if(!rd)return;
             if(lockedRooms[rd.id]) return alert("ประตูบ้านนี้ล็อค เนื่องจากคุณตอบคำถามผิดเกินกำหนด");
             if(rd.hasQuiz && rd.quizData){ 
                 if(sessionStorage.getItem(`passed_${rd.id}`)) openChat(rd); 
@@ -907,6 +1007,11 @@
         bindEvent('btn-delete-house', 'click', async e => { 
             e.stopPropagation(); 
             if(confirm('คุณแน่ใจหรือไม่ว่าต้องการรื้อถอนบ้านหลังนี้?')){ 
+                if (isOffline) {
+                    localDB.rooms = localDB.rooms.filter(x=>x.id!==hoveredHouseId); saveLocalDB(); syncHouses(localDB.rooms);
+                    const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel');
+                    return;
+                }
                 try{ await deleteDoc(doc(db,'artifacts',appId,'public','data','rooms',hoveredHouseId)); const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel'); }catch(er){} 
             } 
         });
@@ -916,7 +1021,7 @@
         bindEvent('special-enter-btn', 'click', () => {
             if(!hoveredSpecialObj)return;
             if(hoveredSpecialObj==='wish_tree') setModal(document.getElementById('wish-modal'),true);
-            else if(hoveredSpecialObj==='campfire') { const h=document.createElement('div'); h.innerHTML='🔥'; h.className='floating-heart'; h.style.left='50%'; h.style.top='50%'; document.body.appendChild(h); setTimeout(()=>h.remove(),2000); }
+            else if(hoveredSpecialObj==='campfire') { const h=document.createElement('div'); h.innerHTML='🔥'; h.className='floating-heart text-2xl'; h.style.left='50%'; h.style.top='50%'; document.body.appendChild(h); setTimeout(()=>h.remove(),2000); }
             else if(hoveredSpecialObj==='ai_guide') { setModal(document.getElementById('ai-modal'),true); const aiMsg = document.getElementById('ai-message'); if(aiMsg) aiMsg.innerText = `"${aiQuotes[Math.floor(Math.random()*aiQuotes.length)]}"`; }
         });
         bindEvent('btn-close-ai', 'click', () => setModal(document.getElementById('ai-modal'), false));
@@ -925,14 +1030,19 @@
         // Wish
         function renderWishes() { 
             const lst=document.getElementById('wish-list'); if(!lst) return;
-            if(!wishesData.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
+            const wList = isOffline ? [...localDB.wishes].sort((a,b)=> b.createdAt - a.createdAt) : wishesData;
+            if(!wList.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
             lst.innerHTML=''; 
-            wishesData.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
+            wList.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
         }
         bindEvent('btn-close-wish', 'click', ()=>setModal(document.getElementById('wish-modal'),false));
         bindEvent('wish-form', 'submit', async e => { 
             e.preventDefault(); const wInp = document.getElementById('wish-input'); 
             const t = filterText(wInp?.value.trim() || ''); if(!t) return; if(wInp) wInp.value=''; 
+            if(isOffline) {
+                localDB.wishes.push({ id:generateId(), text:t, userId:currentUser?.uid, userName:myDisplayName, createdAt:Date.now() });
+                saveLocalDB(); renderWishes(); return;
+            }
             try{await addDoc(collection(db,'artifacts',appId,'public','data','wishes'),{text:t,userId:currentUser?.uid,userName:myDisplayName,createdAt:serverTimestamp()});}catch(er){} 
         });
 
@@ -961,6 +1071,19 @@
         bindEvent('btn-cancel-quiz', 'click', () => setModal(document.getElementById('quiz-modal'), false));
 
         // Chat
+        function renderChatMessages(rmId) {
+            const cMsgs = document.getElementById('chat-messages'); if(!cMsgs) return;
+            const ms = localDB.messages.filter(m=>m.roomId===rmId).sort((a,b)=> a.createdAt - b.createdAt);
+            if(!ms.length){cMsgs.innerHTML='ยังไม่มีข้อความ เริ่มคุยกันได้เลย!'; return;} 
+            cMsgs.innerHTML='';
+            ms.forEach(m=>{ 
+                const isMe=m.userId===currentUser?.uid; const d=document.createElement('div'); d.className=`flex flex-col ${isMe?'items-end':'items-start'}`; 
+                d.innerHTML=`<span class="text-[10px] mb-0.5 px-2" style="color:${m.userColor||'#10b981'}">${m.userName}</span><div class="max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe?'bg-emerald-500 text-white rounded-br-sm':'bg-white border border-emerald-100 text-emerald-800 rounded-bl-sm'}">${m.text}</div>`; 
+                cMsgs.appendChild(d); 
+            }); 
+            cMsgs.scrollTop=cMsgs.scrollHeight;
+        }
+
         function openChat(rm) {
             currentActiveRoom=rm; 
             const rName = document.getElementById('chat-room-name'); if(rName) rName.innerText=rm.name; 
@@ -968,6 +1091,11 @@
             const cMsgs = document.getElementById('chat-messages'); if(cMsgs) cMsgs.innerHTML='โหลด...'; 
             setModal(document.getElementById('chat-modal'),true);
             
+            if(isOffline) {
+                renderChatMessages(rm.id);
+                return;
+            }
+
             if(unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = onSnapshot(collection(db,'artifacts',appId,'public','data','messages'), s => {
                 let ms=[]; s.forEach(d=>ms.push({id:d.id,...d.data()})); ms=ms.filter(m=>m.roomId===rm.id).sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
@@ -983,7 +1111,12 @@
         bindEvent('chat-form', 'submit', async e => { 
             e.preventDefault(); const cInp = document.getElementById('chat-input'); const t = filterText(cInp?.value.trim() || ''); 
             if(!t||!currentUser||!currentActiveRoom) return; if(cInp) cInp.value=''; 
-            try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName,userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
+            if (isOffline) {
+                localDB.messages.push({ id:generateId(), roomId:currentActiveRoom.id, text:t, userId:currentUser.uid, userName:myDisplayName, userColor:myColorHex, createdAt:Date.now() });
+                saveLocalDB(); renderChatMessages(currentActiveRoom.id);
+            } else {
+                try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName,userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
+            }
         });
 
     </script>
