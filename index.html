@@ -75,6 +75,68 @@
 
     <!-- UI Layer -->
     <div id="ui-layer">
+        
+        <!-- ==================== AUTHENTICATION OVERLAY ==================== -->
+        <div id="auth-overlay" class="interactive-ui fixed inset-0 bg-emerald-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+            
+            <!-- Login Section -->
+            <div id="auth-login" class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all">
+                <div class="text-center mb-6">
+                    <i class="fas fa-leaf text-4xl text-emerald-500 mb-2"></i>
+                    <h2 class="text-3xl font-bold text-emerald-800">เข้าสู่ระบบ</h2>
+                    <p class="text-emerald-600 text-sm mt-1">พื้นที่สบายใจ 3D</p>
+                </div>
+                <form id="form-login" class="space-y-4">
+                    <input type="email" id="login-email" required placeholder="อีเมล" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+                    <input type="password" id="login-password" required placeholder="รหัสผ่าน" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">เข้าเล่นเกม</button>
+                </form>
+                <div class="mt-5 flex justify-between text-sm">
+                    <button id="btn-to-register" class="text-emerald-600 font-medium hover:underline">สร้างตัวละครใหม่</button>
+                    <button id="btn-to-forgot" class="text-emerald-500 hover:underline">ลืมรหัสผ่าน?</button>
+                </div>
+            </div>
+
+            <!-- Register Section -->
+            <div id="auth-register" class="hidden-panel bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all max-h-[95vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold text-emerald-800 mb-6 text-center">สร้างตัวละครใหม่</h2>
+                <form id="form-register" class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-emerald-600 font-bold mb-1">ข้อมูลบัญชี</label>
+                        <input type="email" id="reg-email" required placeholder="อีเมล" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400 mb-3">
+                        <input type="password" id="reg-password" required placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" minlength="6" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+                    <div class="border-t border-emerald-100 my-2 pt-2">
+                        <label class="block text-xs text-emerald-600 font-bold mb-1">ตัวละครของคุณ</label>
+                        <input type="text" id="reg-name" required placeholder="ชื่อตัวละคร (เช่น น้องใบไม้)" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400 mb-3">
+                        <div>
+                            <label class="block text-sm text-emerald-700 font-medium mb-2 text-center">เลือกสีประจำตัว</label>
+                            <div class="flex justify-center gap-2" id="reg-color-container"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-2">สร้างและเข้าเล่น</button>
+                </form>
+                <div class="mt-4 text-center text-sm">
+                    <button id="btn-to-login" class="text-emerald-600 font-medium hover:underline">มีบัญชีอยู่แล้ว? เข้าสู่ระบบ</button>
+                </div>
+            </div>
+
+            <!-- Forgot Password Section -->
+            <div id="auth-forgot" class="hidden-panel bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all">
+                <h2 class="text-2xl font-bold text-emerald-800 mb-2 text-center">ลืมรหัสผ่าน</h2>
+                <p class="text-sm text-emerald-600 text-center mb-6">ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปที่อีเมลของคุณ</p>
+                <form id="form-forgot" class="space-y-4">
+                    <input type="email" id="forgot-email" required placeholder="อีเมลที่ลงทะเบียนไว้" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">ส่งลิงก์ไปที่อีเมล</button>
+                </form>
+                <div class="mt-4 text-center text-sm">
+                    <button id="btn-forgot-to-login" class="text-emerald-600 font-medium hover:underline">กลับไปหน้าเข้าสู่ระบบ</button>
+                </div>
+            </div>
+            
+        </div>
+        <!-- ================================================================ -->
+
         <!-- Top Bar -->
         <div class="interactive-ui bg-white/80 backdrop-blur-md p-4 shadow-sm flex justify-between items-center border-b border-emerald-100">
             <h1 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
@@ -83,7 +145,7 @@
             <div class="flex items-center gap-2 sm:gap-4">
                 <button id="btn-show-profile" class="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-emerald-50 transition-colors border border-emerald-200 shadow-sm bg-white">
                     <div id="ui-color-dot" class="w-4 h-4 rounded-full bg-[#ffeebb]"></div>
-                    <span id="user-name-display" class="text-sm font-medium text-emerald-700 max-w-[100px] truncate">กำลังโหลด...</span>
+                    <span id="user-name-display" class="text-sm font-medium text-emerald-700 max-w-[100px] truncate">ผู้เล่น</span>
                 </button>
                 <button id="btn-show-create" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 sm:px-4 py-2 rounded-full shadow-md transition-all text-sm font-medium flex items-center">
                     <i class="fas fa-plus sm:mr-1"></i> <span class="hidden sm:inline">สร้างบ้าน</span>
@@ -163,8 +225,12 @@
                         <label class="block text-sm text-emerald-700 font-medium mb-2">สีตัวละคร</label>
                         <div class="flex justify-center gap-3" id="color-picker-container"></div>
                     </div>
-                    <button id="btn-save-profile" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-4">
+                    <button id="btn-save-profile" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-2">
                         บันทึกการตั้งค่า
+                    </button>
+                    <!-- Logout Button -->
+                    <button id="btn-logout" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 rounded-xl transition-colors mt-4 border border-red-200">
+                        <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
                     </button>
                 </div>
             </div>
@@ -324,35 +390,41 @@
 
     <!-- Script -->
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
         // --- Helper for Safe Event Listeners (Prevents null crashes) ---
         const bindEvent = (id, eventType, handler) => {
             const el = document.getElementById(id);
             if (el) el.addEventListener(eventType, handler);
-            else console.warn(`Element #${id} not found for event ${eventType}`);
         };
 
-        // --- Local Storage Database System (No Firebase) ---
-        const generateId = () => Math.random().toString(36).substr(2, 9);
-        let localDB = JSON.parse(localStorage.getItem('safeSpaceLocalDB')) || {
-            rooms: [], decorations: [], messages: [], wishes: []
-        };
-        const saveDB = () => {
-            localStorage.setItem('safeSpaceLocalDB', JSON.stringify(localDB));
-        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const app = initializeApp(firebaseConfig); 
+        const auth = getAuth(app); 
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'safe-space-v5-multiplayer';
 
         // --- Core States ---
-        let currentUser = { uid: 'local_player_1' }; // Mock User ID
+        let currentUser = null;
         const natureNames = ["น้องใบไม้","พี่ก้อนเมฆ","สายลม","ต้นโอ๊ก","ดอกหญ้า","หยดน้ำ","แสงแดด","ภูเขา","แม่น้ำ","นกน้อย"];
         const playerColors = [{id:'peach',hex:'#ffeebb'},{id:'mint',hex:'#a7f3d0'},{id:'sky',hex:'#bae6fd'},{id:'rose',hex:'#fecdd3'},{id:'lav',hex:'#e9d5ff'},{id:'sun',hex:'#fef08a'}];
         let myDisplayName = localStorage.getItem('nature3DName') || ''; let myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
         const getRandomName = uid => { let h=0; for(let i=0;i<uid.length;i++) h=uid.charCodeAt(i)+((h<<5)-h); return natureNames[Math.abs(h)%natureNames.length]; };
 
+        // --- Multiplayer State ---
+        const onlinePlayers = new Map(); // uid -> { mesh, nameTag, targetPos, targetRot, lastUpdate }
+        let lastPosSync = 0; const SYNC_RATE = 200; // ms
+
+        let roomsData = []; let decorsData = []; let wishesData = [];
         let lockedRooms = JSON.parse(localStorage.getItem('nature3DLocks') || '{}');
         let buildMode = 'walk'; 
-        let currentActiveRoom = null;
         const keys = { w:false, a:false, s:false, d:false, arrowup:false, arrowdown:false, arrowleft:false, arrowright:false };
+        
+        let unsubRooms, unsubDecors, unsubWishes, unsubPlayers, unsubMessages;
+        let isAnimating = false;
         
         // Mobile Joy state
         let joyActive = false; let joyDir = new THREE.Vector2(0,0);
@@ -391,7 +463,9 @@
             const head = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 12, 0, Math.PI*2, 0, Math.PI/2), mat); head.position.y = 1.3; head.castShadow = true;
             const eyeM = new THREE.MeshBasicMaterial({ color: 0x333 }); const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), eyeM);
             const er=eye.clone(); er.position.set(0.2, 1.1, 0.45); const el=eye.clone(); el.position.set(-0.2, 1.1, 0.45);
-            group.add(body, head, er, el); return group;
+            group.add(body, head, er, el); 
+            group.userData = { color: color }; // Store current color
+            return group;
         }
         const playerGroup = createPlayerMesh(myColorHex); scene.add(playerGroup);
 
@@ -410,14 +484,13 @@
         for(let i=0; i<treeCount; i++) {
             let r = 25 + Math.random()*70; let th = Math.random()*Math.PI*2;
             dummy.position.set(Math.cos(th)*r, 0, Math.sin(th)*r); dummy.rotation.y = Math.random()*Math.PI; dummy.scale.setScalar(0.7+Math.random()*0.6);
-            
             dummy.position.y = 1; dummy.updateMatrix(); trunkI.setMatrixAt(i, dummy.matrix);
             dummy.position.y = 3; dummy.updateMatrix(); leafI.setMatrixAt(i, dummy.matrix);
         }
         scene.add(trunkI, leafI);
 
         // Collections
-        const houseMeshes = []; const decorMeshes = []; const specialObjects = []; const npcArray = [];
+        const houseMeshes = []; const decorMeshes = []; const specialObjects = [];
         let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = false;
         let playerTarget = new THREE.Vector3(0,0,0); let isMovingToClick = false; const playerSpeed = 0.15;
 
@@ -438,26 +511,14 @@
         const glowLight = new THREE.PointLight(0x818cf8, 1, 5); glowLight.position.y=1; aiGuide.add(glowLight);
         aiGuide.userData = { type: 'ai_guide', name:'<i class="fas fa-robot text-indigo-500"></i> น้องแสงจันทร์', sub:'พูดคุยรับคำแนะนำฮีลใจ' }; scene.add(aiGuide); specialObjects.push(aiGuide);
 
-        // --- NPC Generation (Simulating other players offline) ---
-        for(let i=0; i<4; i++) {
-            const npc = playerGroup.clone();
-            npc.children[0].material = new THREE.MeshStandardMaterial({ color: playerColors[Math.floor(Math.random() * playerColors.length)].hex });
-            npc.children[1].material = npc.children[0].material;
-            npc.position.set((Math.random() - 0.5) * 40, 0, (Math.random() - 0.5) * 40);
-            scene.add(npc);
-            npcArray.push({ mesh: npc, target: npc.position.clone(), state: 'idle', timer: 0 });
-        }
-
         // --- Building Logic ---
         let houseGridIdx = 0; function getHousePos() { const sp=8, col=5; const r=Math.floor(houseGridIdx/col), c=houseGridIdx%col; houseGridIdx++; return {x:(c-Math.floor(col/2))*sp, z:-18-(r*sp)}; }
         
         function syncHouses(data) {
             const ids = data.map(d=>d.id); 
-            // Remove deleted
             for(let i=houseMeshes.length-1;i>=0;i--){ 
                 if(!ids.includes(houseMeshes[i].userData.roomId)){ scene.remove(houseMeshes[i]); houseMeshes.splice(i,1); } 
             }
-            // Add new
             data.forEach(rd => {
                 if(!houseMeshes.find(h=>h.userData.roomId===rd.id)) {
                     const g = new THREE.Group();
@@ -471,6 +532,7 @@
                 }
             });
         }
+
         function syncDecors(data) {
             const ids=data.map(d=>d.id); 
             for(let i=decorMeshes.length-1;i>=0;i--){ 
@@ -499,15 +561,7 @@
                 if(hits.length>0) {
                     let r=hits[0].object; while(r.parent&&r.parent!==scene) r=r.parent;
                     if(r.userData && r.userData.creatorId===currentUser?.uid){ 
-                        const idToDelete = r.userData.id||r.userData.roomId;
-                        if(r.userData.type==='house'){
-                            localDB.rooms = localDB.rooms.filter(x => x.id !== idToDelete);
-                            syncHouses(localDB.rooms);
-                        } else {
-                            localDB.decorations = localDB.decorations.filter(x => x.id !== idToDelete);
-                            syncDecors(localDB.decorations);
-                        }
-                        saveDB();
+                        try{ await deleteDoc(doc(db,'artifacts',appId,'public','data', r.userData.type==='house'?'rooms':'decorations', r.userData.id||r.userData.roomId)); r.visible=false; }catch(err){}
                     }
                 } return;
             }
@@ -518,12 +572,9 @@
                     playerTarget.copy(pt); isMovingToClick=true; targetMarker.position.copy(pt); targetMarker.position.y=0.05; targetMarker.visible=true; targetMarker.scale.setScalar(1); playerGroup.lookAt(pt.x, playerGroup.position.y, pt.z);
                 } else if(buildMode==='road'||buildMode==='fence'||buildMode==='flower') {
                     const sX=buildMode==='flower'?pt.x:Math.round(pt.x/2)*2, sZ=buildMode==='flower'?pt.z:Math.round(pt.z/2)*2;
-                    const payload={id: generateId(), type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt: Date.now()};
+                    const payload={type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt: serverTimestamp()};
                     if(buildMode==='flower') payload.color=['0xff69b4','0xffd700','0xdda0dd','0x87cefa','0xff4500'][Math.floor(Math.random()*5)];
-                    
-                    localDB.decorations.push(payload);
-                    saveDB();
-                    syncDecors(localDB.decorations);
+                    try{ await addDoc(collection(db,'artifacts',appId,'public','data','decorations'), payload); }catch(err){}
                 }
             }
         });
@@ -552,18 +603,72 @@
 
         window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
-        // Show floating heart animation (Local Emotes)
+        // --- Network Logic (Firebase) ---
+        function syncMultiplayer() {
+            if(!currentUser) return;
+            const now = Date.now();
+            if(now - lastPosSync > SYNC_RATE) {
+                lastPosSync = now;
+                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), {
+                    x: playerGroup.position.x, z: playerGroup.position.z, rotY: playerGroup.rotation.y,
+                    name: myDisplayName || getRandomName(currentUser.uid), color: myColorHex, lastActive: serverTimestamp()
+                }, {merge: true}).catch(e=>{});
+            }
+        }
+
+        function updateOtherPlayers(playersData) {
+            const now = Date.now(); const activeIds = []; const nCont = document.getElementById('nametags-container');
+            if(!nCont) return;
+            playersData.forEach(p => {
+                if(p.id === currentUser?.uid) return;
+                activeIds.push(p.id);
+                if(!onlinePlayers.has(p.id)) {
+                    const mesh = createPlayerMesh(p.color || '#fff'); scene.add(mesh);
+                    const tag = document.createElement('div'); tag.className = 'player-nametag';
+                    const nSpan = document.createElement('span'); nSpan.innerText = p.name;
+                    const eSpan = document.createElement('span'); eSpan.className = 'player-emote';
+                    tag.appendChild(eSpan); tag.appendChild(nSpan); nCont.appendChild(tag);
+                    
+                    onlinePlayers.set(p.id, { mesh, labelElement: tag, emoteElement: eSpan, targetPos: new THREE.Vector3(p.x, 0, p.z), targetRot: p.rotY, lastUpdate: now });
+                    mesh.position.set(p.x, 0, p.z); mesh.rotation.y = p.rotY;
+                } else {
+                    const pObj = onlinePlayers.get(p.id);
+                    pObj.targetPos.set(p.x, 0, p.z); pObj.targetRot = p.rotY; pObj.lastUpdate = now;
+                    
+                    // Update Name/Color if changed
+                    if (pObj.labelElement.children[1].innerText !== p.name) pObj.labelElement.children[1].innerText = p.name;
+                    if (pObj.mesh.userData.color !== p.color) {
+                        pObj.mesh.userData.color = p.color;
+                        pObj.mesh.children[0].material.color.set(p.color); pObj.mesh.children[1].material.color.set(p.color);
+                    }
+
+                    if(p.emote && p.emoteTime > (pObj.lastEmoteTime||0)) {
+                        pObj.lastEmoteTime = p.emoteTime;
+                        pObj.emoteElement.innerText = p.emote; pObj.emoteElement.style.display = 'block';
+                        pObj.emoteElement.style.animation = 'none'; void pObj.emoteElement.offsetWidth; pObj.emoteElement.style.animation = 'float-up 2s ease-out forwards';
+                        setTimeout(()=> { pObj.emoteElement.style.display='none'; }, 2000);
+                    }
+                }
+            });
+            // Remove offline players
+            for(let [id, pObj] of onlinePlayers.entries()) {
+                if(!activeIds.includes(id) || now - pObj.lastUpdate > 12000) {
+                    scene.remove(pObj.mesh); pObj.labelElement.remove(); onlinePlayers.delete(id);
+                }
+            }
+        }
+
+        // Send Emote
         document.querySelectorAll('.emote-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const e = btn.dataset.emote;
-                const h = document.createElement('div'); h.innerHTML = e; h.className = 'floating-heart text-2xl'; 
-                h.style.left = '50%'; h.style.top = '40%'; document.body.appendChild(h); 
-                setTimeout(() => h.remove(), 2000);
+                if(!currentUser) return; const e = btn.dataset.emote;
+                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), { emote: e, emoteTime: Date.now() }, {merge:true});
             });
         });
 
         // --- Core Loop ---
         function animate() {
+            if(!isAnimating) return;
             requestAnimationFrame(animate); const time = Date.now();
             
             // Day/Night Cycle
@@ -611,26 +716,25 @@
             camera.position.x += (playerGroup.position.x - camera.position.x)*0.05; camera.position.z += (playerGroup.position.z+15 - camera.position.z)*0.05; camera.lookAt(playerGroup.position);
             if(targetMarker.visible) { targetMarker.scale.addScalar(0.02); if(targetMarker.scale.x>1.5) targetMarker.scale.setScalar(1); }
 
-            // NPC Animations
-            npcArray.forEach(npc => {
-                npc.timer -= 1;
-                if(npc.timer <= 0) {
-                    if(npc.state === 'idle') {
-                        npc.state = 'moving'; npc.timer = 100 + Math.random() * 200;
-                        npc.target.set(npc.mesh.position.x + (Math.random()-0.5)*15, 0, npc.mesh.position.z + (Math.random()-0.5)*15);
-                        npc.mesh.lookAt(npc.target);
-                    } else { npc.state = 'idle'; npc.timer = 100 + Math.random() * 200; }
-                }
-                if(npc.state === 'moving') {
-                    const dist = npc.mesh.position.distanceTo(npc.target);
-                    if(dist > 0.1) {
-                        const dir = new THREE.Vector3().subVectors(npc.target, npc.mesh.position).normalize();
-                        npc.mesh.position.add(dir.multiplyScalar(0.05));
-                        npc.mesh.children[0].position.y = 0.65 + Math.abs(Math.sin(time*0.01))*0.15;
-                        npc.mesh.children[1].position.y = 1.3 + Math.abs(Math.sin(time*0.01))*0.15;
-                    } else { npc.state = 'idle'; }
-                } else { npc.mesh.children[0].position.y = 0.65; npc.mesh.children[1].position.y = 1.3; }
-            });
+            syncMultiplayer();
+
+            // Interpolate Other Players
+            const tempV = new THREE.Vector3();
+            for(let [id, p] of onlinePlayers.entries()) {
+                p.mesh.position.lerp(p.targetPos, 0.1);
+                const isMoving = p.mesh.position.distanceTo(p.targetPos) > 0.05;
+                p.mesh.children[0].position.y = 0.65 + (isMoving ? Math.abs(Math.sin(time*0.01))*0.15 : 0);
+                p.mesh.children[1].position.y = 1.3 + (isMoving ? Math.abs(Math.sin(time*0.01))*0.15 : 0);
+                
+                const currentRot = new THREE.Quaternion().setFromEuler(p.mesh.rotation);
+                const targetRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), p.targetRot);
+                currentRot.slerp(targetRot, 0.1); p.mesh.rotation.setFromQuaternion(currentRot);
+
+                tempV.setFromMatrixPosition(p.mesh.matrixWorld); tempV.y += 2.2; tempV.project(camera);
+                const x = (tempV.x * .5 + .5) * window.innerWidth; const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                if(tempV.z < 1) { p.labelElement.style.display = 'flex'; p.labelElement.style.left = `${x}px`; p.labelElement.style.top = `${y}px`; }
+                else p.labelElement.style.display = 'none';
+            }
 
             // Proximity Logic
             if (!isUIOpen && buildMode==='walk') {
@@ -692,40 +796,127 @@
             playerGroup.children[0].material.color.set(myColorHex); playerGroup.children[1].material.color.set(myColorHex); 
         }
         
+        // Color Picker Setup
         const cc = document.getElementById('color-picker-container');
-        if (cc) {
-            playerColors.forEach(c => { const l=document.createElement('label'); l.className='cursor-pointer'; l.innerHTML=`<input type="radio" name="p_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform" style="background-color:${c.hex}; border:1px solid #ddd;"></div>`; cc.appendChild(l); });
+        const regCc = document.getElementById('reg-color-container');
+        playerColors.forEach(c => { 
+            const l=document.createElement('label'); l.className='cursor-pointer'; 
+            l.innerHTML=`<input type="radio" name="p_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform" style="background-color:${c.hex}; border:1px solid #ddd;"></div>`; 
+            if(cc) cc.appendChild(l); 
+            
+            const l2=document.createElement('label'); l2.className='cursor-pointer'; 
+            l2.innerHTML=`<input type="radio" name="reg_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform" style="background-color:${c.hex}; border:1px solid #ddd;"></div>`; 
+            if(regCc) regCc.appendChild(l2);
+        });
+
+        // ---------------- AUTHENTICATION LOGIC ----------------
+        bindEvent('btn-to-register', 'click', () => { document.getElementById('auth-login').classList.add('hidden-panel'); document.getElementById('auth-register').classList.remove('hidden-panel'); });
+        bindEvent('btn-to-login', 'click', () => { document.getElementById('auth-register').classList.add('hidden-panel'); document.getElementById('auth-login').classList.remove('hidden-panel'); });
+        bindEvent('btn-to-forgot', 'click', () => { document.getElementById('auth-login').classList.add('hidden-panel'); document.getElementById('auth-forgot').classList.remove('hidden-panel'); });
+        bindEvent('btn-forgot-to-login', 'click', () => { document.getElementById('auth-forgot').classList.add('hidden-panel'); document.getElementById('auth-login').classList.remove('hidden-panel'); });
+
+        bindEvent('form-register', 'submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value;
+            const pwd = document.getElementById('reg-password').value;
+            const name = filterText(document.getElementById('reg-name').value);
+            const colNode = document.querySelector('input[name="reg_col"]:checked');
+            const color = colNode ? colNode.value : '#ffeebb';
+            
+            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังสร้าง...";
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', cred.user.uid), { name: name, color: color, email: email });
+            } catch(err) {
+                alert("เกิดข้อผิดพลาด: " + err.message);
+            }
+            btn.disabled = false; btn.innerText = "สร้างและเข้าเล่น";
+        });
+
+        bindEvent('form-login', 'submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pwd = document.getElementById('login-password').value;
+            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังตรวจสอบ...";
+            try { await signInWithEmailAndPassword(auth, email, pwd); } 
+            catch(err) { alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง"); }
+            btn.disabled = false; btn.innerText = "เข้าเล่นเกม";
+        });
+
+        bindEvent('form-forgot', 'submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังส่ง...";
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย");
+                document.getElementById('btn-forgot-to-login').click();
+            } catch(err) { alert("เกิดข้อผิดพลาด: " + err.message); }
+            btn.disabled = false; btn.innerText = "ส่งลิงก์ไปที่อีเมล";
+        });
+
+        bindEvent('btn-logout', 'click', async () => {
+            try { await signOut(auth); setModal(document.getElementById('profile-modal'), false); } catch(err) {}
+        });
+
+        // ---------------- GAME INITIALIZATION ----------------
+        function startGameListeners() {
+            const ol = document.getElementById('loading-overlay');
+            if(ol) { ol.style.opacity='0'; setTimeout(()=>ol.classList.add('hidden-panel'),500); }
+            stopGameListeners();
+            
+            unsubRooms = onSnapshot(collection(db,'artifacts',appId,'public','data','rooms'), s => { const r=[]; s.forEach(d=>r.push({id:d.id,...d.data()})); roomsData=r; syncHouses(r); });
+            unsubDecors = onSnapshot(collection(db,'artifacts',appId,'public','data','decorations'), s => { const d=[]; s.forEach(x=>d.push({id:x.id,...x.data()})); syncDecors(d); });
+            unsubWishes = onSnapshot(collection(db,'artifacts',appId,'public','data','wishes'), s => { const w=[]; s.forEach(d=>w.push({id:d.id,...d.data()})); wishesData=w.sort((a,b)=>(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0)); renderWishes(); });
+            unsubPlayers = onSnapshot(collection(db,'artifacts',appId,'public','data','players'), s => { const p=[]; s.forEach(d=>p.push({id:d.id,...d.data()})); updateOtherPlayers(p); });
+            
+            if(!isAnimating) { isAnimating = true; animate(); }
         }
-        
+
+        function stopGameListeners() {
+            if(unsubRooms) unsubRooms(); if(unsubDecors) unsubDecors(); if(unsubWishes) unsubWishes(); if(unsubPlayers) unsubPlayers(); if(unsubMessages) unsubMessages();
+            roomsData = []; decorsData = []; wishesData = []; 
+            for(let [id, pObj] of onlinePlayers.entries()) { scene.remove(pObj.mesh); pObj.labelElement.remove(); }
+            onlinePlayers.clear();
+        }
+
+        window.onload = async () => {
+            onAuthStateChanged(auth, async (user) => {
+                if(user) {
+                    const profSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid));
+                    if(profSnap.exists()) {
+                        myDisplayName = profSnap.data().name; myColorHex = profSnap.data().color;
+                    } else {
+                        myDisplayName = localStorage.getItem('nature3DName') || getRandomName(user.uid); myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid), {name: myDisplayName, color: myColorHex});
+                    }
+                    currentUser = user; updateId();
+                    document.getElementById('auth-overlay').classList.add('hidden-panel');
+                    startGameListeners();
+                } else {
+                    document.getElementById('auth-overlay').classList.remove('hidden-panel');
+                    stopGameListeners();
+                }
+            });
+        };
+
+        // --- Profile Update ---
         bindEvent('btn-show-profile', 'click', () => {
             const pName = document.getElementById('profile-name');
             if(pName) pName.value = myDisplayName || getRandomName(currentUser?.uid || 'temp');
             setModal(document.getElementById('profile-modal'), true);
         });
         bindEvent('btn-close-profile', 'click', () => setModal(document.getElementById('profile-modal'), false));
-        bindEvent('btn-save-profile', 'click', () => { 
+        bindEvent('btn-save-profile', 'click', async () => { 
             const pName = document.getElementById('profile-name');
             if(pName) myDisplayName = filterText(pName.value.trim()); 
             const s = document.querySelector('input[name="p_col"]:checked'); if(s) myColorHex = s.value; 
             localStorage.setItem('nature3DName', myDisplayName); localStorage.setItem('nature3DColor', myColorHex); 
             updateId(); setModal(document.getElementById('profile-modal'), false); 
+            if(currentUser) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', currentUser.uid), { name: myDisplayName, color: myColorHex }, {merge: true}); }
         });
         
         document.querySelectorAll('.tool-btn').forEach(b => b.addEventListener('click', ()=>{ document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); buildMode=b.dataset.tool; gridHelper.visible=(buildMode==='road'||buildMode==='fence'); previewBox.visible=false; }));
-
-        // Init App (Local Mode)
-        window.onload = () => {
-            updateId(); 
-            const overlayLoading = document.getElementById('loading-overlay');
-            if(overlayLoading) { overlayLoading.style.opacity='0'; setTimeout(()=>overlayLoading.classList.add('hidden-panel'),500); }
-            
-            // Load Local Data
-            syncHouses(localDB.rooms);
-            syncDecors(localDB.decorations);
-            renderWishes();
-            
-            animate();
-        };
 
         // Standard Modals
         bindEvent('btn-show-create', 'click', () => setModal(document.getElementById('create-modal'), true)); 
@@ -734,38 +925,30 @@
             const cForm = document.getElementById('create-form'); if(cForm) cForm.reset();
             const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel');
         });
-        bindEvent('create-has-quiz', 'change', e => {
-            const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.toggle('hidden-panel', !e.target.checked);
-        });
+        bindEvent('create-has-quiz', 'change', e => { const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.toggle('hidden-panel', !e.target.checked); });
+        
         bindEvent('create-form', 'submit', async e => {
             e.preventDefault(); 
             const nm = filterText(document.getElementById('create-name')?.value || ''); 
             const dsc = filterText(document.getElementById('create-desc')?.value || ''); 
             const hq = document.getElementById('create-has-quiz')?.checked || false; 
-            const styleNode = document.querySelector('input[name="house_style"]:checked');
-            const st = styleNode ? styleNode.value : 'wood';
-            
+            const styleNode = document.querySelector('input[name="house_style"]:checked'); const st = styleNode ? styleNode.value : 'wood';
             let qD=null; 
             if(hq){ 
                 const q=document.getElementById('quiz-q')?.value, o1=document.getElementById('quiz-o1')?.value, o2=document.getElementById('quiz-o2')?.value; 
-                if(!q||!o1||!o2) return alert("กรุณากรอกข้อมูลให้ครบถ้วน"); 
-                qD={q,options:[o1,o2],correctIndex:0}; 
+                if(!q||!o1||!o2) return alert("กรุณากรอกข้อมูลให้ครบถ้วน"); qD={q,options:[o1,o2],correctIndex:0}; 
             }
-            
-            // Save locally
-            const newRoom = { id: generateId(), name:nm, description:dsc, style:st, hasQuiz:hq, quizData:qD, creatorId:currentUser?.uid, createdAt: Date.now() };
-            localDB.rooms.push(newRoom);
-            saveDB();
-            syncHouses(localDB.rooms);
-
-            setModal(document.getElementById('create-modal'),false); 
-            e.target.reset(); 
-            const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel'); 
+            const btn=e.target.querySelector('button[type="submit"]'); if(btn) { btn.disabled=true; btn.innerText="กำลังสร้าง..."; }
+            try{ 
+                await addDoc(collection(db,'artifacts',appId,'public','data','rooms'), {name:nm,description:dsc,style:st,hasQuiz:hq,quizData:qD,creatorId:currentUser?.uid,createdAt:serverTimestamp()}); 
+                setModal(document.getElementById('create-modal'),false); e.target.reset(); const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel'); 
+            }catch(err){}
+            if(btn) { btn.disabled=false; btn.innerText="สร้างบ้านและวางลงในพื้นที่"; }
         });
 
         // Enter Room & Interactions
         bindEvent('prompt-enter-btn', 'click', () => {
-            if(!hoveredHouseId)return; const rd=localDB.rooms.find(r=>r.id===hoveredHouseId); if(!rd)return;
+            if(!hoveredHouseId)return; const rd=roomsData.find(r=>r.id===hoveredHouseId); if(!rd)return;
             if(lockedRooms[rd.id]) return alert("ประตูบ้านนี้ล็อค เนื่องจากคุณตอบคำถามผิดเกินกำหนด");
             if(rd.hasQuiz && rd.quizData){ 
                 if(sessionStorage.getItem(`passed_${rd.id}`)) openChat(rd); 
@@ -785,16 +968,12 @@
         bindEvent('btn-delete-house', 'click', async e => { 
             e.stopPropagation(); 
             if(confirm('คุณแน่ใจหรือไม่ว่าต้องการรื้อถอนบ้านหลังนี้?')){ 
-                localDB.rooms = localDB.rooms.filter(r => r.id !== hoveredHouseId);
-                saveDB();
-                syncHouses(localDB.rooms);
-                const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel');
+                try{ await deleteDoc(doc(db,'artifacts',appId,'public','data','rooms',hoveredHouseId)); const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel'); }catch(er){} 
             } 
         });
 
         // AI Advice Gen
         const aiQuotes = ["อย่าลืมใจดีกับตัวเองบ้างนะ 🌿","วันที่ฝนตก ก็ทำให้ต้นไม้เติบโตได้ 🌧️","ไม่เป็นไรเลยที่จะรู้สึกเหนื่อย พักสักหน่อยนะ ☕","คุณเก่งมากแล้วที่ผ่านวันนี้มาได้ ✨","ลองสูดหายใจลึกๆ แล้วมองดูท้องฟ้าดูสิ ☁️"];
-        
         bindEvent('special-enter-btn', 'click', () => {
             if(!hoveredSpecialObj)return;
             if(hoveredSpecialObj==='wish_tree') setModal(document.getElementById('wish-modal'),true);
@@ -807,28 +986,20 @@
         // Wish
         function renderWishes() { 
             const lst=document.getElementById('wish-list'); if(!lst) return;
-            if(!localDB.wishes.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
+            if(!wishesData.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
             lst.innerHTML=''; 
-            
-            // Sort new first
-            const sorted = [...localDB.wishes].sort((a,b)=> b.createdAt - a.createdAt);
-            sorted.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
+            wishesData.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
         }
         bindEvent('btn-close-wish', 'click', ()=>setModal(document.getElementById('wish-modal'),false));
         bindEvent('wish-form', 'submit', async e => { 
             e.preventDefault(); const wInp = document.getElementById('wish-input'); 
             const t = filterText(wInp?.value.trim() || ''); if(!t) return; if(wInp) wInp.value=''; 
-            
-            localDB.wishes.push({ id: generateId(), text:t, userId:currentUser?.uid, userName:myDisplayName||getRandomName(currentUser?.uid||'x'), createdAt: Date.now() });
-            saveDB();
-            renderWishes();
+            try{await addDoc(collection(db,'artifacts',appId,'public','data','wishes'),{text:t,userId:currentUser?.uid,userName:myDisplayName||getRandomName(currentUser?.uid||'x'),createdAt:serverTimestamp()});}catch(er){} 
         });
 
         // Quiz Handling
         const handleAns = e => { 
-            const b=e.target; 
-            const b1 = document.getElementById('btn-quiz-opt1'); const b2 = document.getElementById('btn-quiz-opt2');
-            const qStat = document.getElementById('quiz-status');
+            const b=e.target; const b1 = document.getElementById('btn-quiz-opt1'); const b2 = document.getElementById('btn-quiz-opt2'); const qStat = document.getElementById('quiz-status');
             if(b1) b1.disabled=true; if(b2) b2.disabled=true; 
             
             if(b.dataset.c==="true"){
@@ -842,62 +1013,38 @@
                 }else{
                     if(qStat) qStat.innerHTML='<span class="text-orange-500">ผิด! ลองใหม่</span>'; 
                     setTimeout(()=>{
-                        if(b1) b1.disabled=false; if(b2) b2.disabled=false; 
-                        b.classList.remove('bg-red-100','border-red-500'); 
-                        if(qStat) qStat.innerText="";
+                        if(b1) b1.disabled=false; if(b2) b2.disabled=false; b.classList.remove('bg-red-100','border-red-500'); if(qStat) qStat.innerText="";
                     },1500);
                 } 
             } 
         };
-        bindEvent('btn-quiz-opt1', 'click', handleAns); 
-        bindEvent('btn-quiz-opt2', 'click', handleAns); 
+        bindEvent('btn-quiz-opt1', 'click', handleAns); bindEvent('btn-quiz-opt2', 'click', handleAns); 
         bindEvent('btn-cancel-quiz', 'click', () => setModal(document.getElementById('quiz-modal'), false));
 
-        // Chat (Local rendering)
-        function renderChatMessages(rmId) {
-            const cMsgs = document.getElementById('chat-messages'); if(!cMsgs) return;
-            const ms = localDB.messages.filter(m=>m.roomId===rmId).sort((a,b)=> a.createdAt - b.createdAt);
-            
-            if(!ms.length){cMsgs.innerHTML='ยังไม่มีข้อความ เริ่มคุยกันได้เลย!'; return;} 
-            cMsgs.innerHTML='';
-            ms.forEach(m=>{ 
-                const isMe=m.userId===currentUser?.uid; 
-                const d=document.createElement('div'); d.className=`flex flex-col ${isMe?'items-end':'items-start'}`; 
-                d.innerHTML=`<span class="text-[10px] mb-0.5 px-2" style="color:${m.userColor||'#10b981'}">${m.userName}</span><div class="max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe?'bg-emerald-500 text-white rounded-br-sm':'bg-white border border-emerald-100 text-emerald-800 rounded-bl-sm'}">${m.text}</div>`; 
-                cMsgs.appendChild(d); 
-            }); 
-            cMsgs.scrollTop=cMsgs.scrollHeight;
-        }
-
+        // Chat
         function openChat(rm) {
             currentActiveRoom=rm; 
             const rName = document.getElementById('chat-room-name'); if(rName) rName.innerText=rm.name; 
             const rDesc = document.getElementById('chat-room-desc'); if(rDesc) rDesc.innerText=rm.description||''; 
-            
+            const cMsgs = document.getElementById('chat-messages'); if(cMsgs) cMsgs.innerHTML='โหลด...'; 
             setModal(document.getElementById('chat-modal'),true);
-            renderChatMessages(rm.id);
+            
+            if(unsubscribeMessages) unsubscribeMessages();
+            unsubscribeMessages = onSnapshot(collection(db,'artifacts',appId,'public','data','messages'), s => {
+                let ms=[]; s.forEach(d=>ms.push({id:d.id,...d.data()})); ms=ms.filter(m=>m.roomId===rm.id).sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
+                if(cMsgs) {
+                    if(!ms.length){cMsgs.innerHTML='ว่างเปล่า...';return;} 
+                    cMsgs.innerHTML='';
+                    ms.forEach(m=>{ const isMe=m.userId===currentUser?.uid; const d=document.createElement('div'); d.className=`flex flex-col ${isMe?'items-end':'items-start'}`; d.innerHTML=`<span class="text-[10px] mb-0.5 px-2" style="color:${m.userColor||'#10b981'}">${m.userName}</span><div class="max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe?'bg-emerald-500 text-white rounded-br-sm':'bg-white border border-emerald-100 text-emerald-800 rounded-bl-sm'}">${m.text}</div>`; cMsgs.appendChild(d); }); 
+                    cMsgs.scrollTop=cMsgs.scrollHeight;
+                }
+            });
         }
-        bindEvent('btn-close-chat', 'click', () => { setModal(document.getElementById('chat-modal'),false); currentActiveRoom=null; });
-        
+        bindEvent('btn-close-chat', 'click', () => { setModal(document.getElementById('chat-modal'),false); if(unsubscribeMessages){unsubscribeMessages();unsubscribeMessages=null;} currentActiveRoom=null; });
         bindEvent('chat-form', 'submit', async e => { 
             e.preventDefault(); const cInp = document.getElementById('chat-input'); const t = filterText(cInp?.value.trim() || ''); 
-            if(!t||!currentUser||!currentActiveRoom) return; 
-            if(cInp) cInp.value=''; 
-            
-            // Save user msg
-            localDB.messages.push({ id: generateId(), roomId:currentActiveRoom.id, text:t, userId:currentUser.uid, userName:myDisplayName||getRandomName(currentUser.uid), userColor:myColorHex, createdAt: Date.now() });
-            saveDB();
-            renderChatMessages(currentActiveRoom.id);
-
-            // Fake AI Reply in Local Mode
-            if(Math.random() > 0.6) {
-                setTimeout(() => {
-                    if(!currentActiveRoom) return;
-                    localDB.messages.push({ id: generateId(), roomId:currentActiveRoom.id, text: aiQuotes[Math.floor(Math.random()*aiQuotes.length)], userId: 'ai_bot', userName: 'น้องแสงจันทร์ (AI)', userColor: '#818cf8', createdAt: Date.now() });
-                    saveDB();
-                    renderChatMessages(currentActiveRoom.id);
-                }, 1500);
-            }
+            if(!t||!currentUser||!currentActiveRoom) return; if(cInp) cInp.value=''; 
+            try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName||getRandomName(currentUser.uid),userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
         });
 
     </script>
