@@ -324,9 +324,6 @@
 
     <!-- Script -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
         // --- Helper for Safe Event Listeners (Prevents null crashes) ---
@@ -336,24 +333,25 @@
             else console.warn(`Element #${id} not found for event ${eventType}`);
         };
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'safe-space-v4-multiplayer';
+        // --- Local Storage Database System (No Firebase) ---
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        let localDB = JSON.parse(localStorage.getItem('safeSpaceLocalDB')) || {
+            rooms: [], decorations: [], messages: [], wishes: []
+        };
+        const saveDB = () => {
+            localStorage.setItem('safeSpaceLocalDB', JSON.stringify(localDB));
+        };
 
         // --- Core States ---
-        let currentUser = null;
+        let currentUser = { uid: 'local_player_1' }; // Mock User ID
         const natureNames = ["น้องใบไม้","พี่ก้อนเมฆ","สายลม","ต้นโอ๊ก","ดอกหญ้า","หยดน้ำ","แสงแดด","ภูเขา","แม่น้ำ","นกน้อย"];
         const playerColors = [{id:'peach',hex:'#ffeebb'},{id:'mint',hex:'#a7f3d0'},{id:'sky',hex:'#bae6fd'},{id:'rose',hex:'#fecdd3'},{id:'lav',hex:'#e9d5ff'},{id:'sun',hex:'#fef08a'}];
         let myDisplayName = localStorage.getItem('nature3DName') || ''; let myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
         const getRandomName = uid => { let h=0; for(let i=0;i<uid.length;i++) h=uid.charCodeAt(i)+((h<<5)-h); return natureNames[Math.abs(h)%natureNames.length]; };
 
-        // --- Multiplayer State ---
-        const onlinePlayers = new Map(); // uid -> { mesh, nameTag, targetPos, lastUpdate }
-        let lastPosSync = 0; const SYNC_RATE = 200; // ms
-
-        let roomsData = []; let decorsData = []; let messagesData = []; let wishesData = [];
         let lockedRooms = JSON.parse(localStorage.getItem('nature3DLocks') || '{}');
         let buildMode = 'walk'; 
+        let currentActiveRoom = null;
         const keys = { w:false, a:false, s:false, d:false, arrowup:false, arrowdown:false, arrowleft:false, arrowright:false };
         
         // Mobile Joy state
@@ -419,7 +417,7 @@
         scene.add(trunkI, leafI);
 
         // Collections
-        const houseMeshes = []; const decorMeshes = []; const specialObjects = [];
+        const houseMeshes = []; const decorMeshes = []; const specialObjects = []; const npcArray = [];
         let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = false;
         let playerTarget = new THREE.Vector3(0,0,0); let isMovingToClick = false; const playerSpeed = 0.15;
 
@@ -440,10 +438,26 @@
         const glowLight = new THREE.PointLight(0x818cf8, 1, 5); glowLight.position.y=1; aiGuide.add(glowLight);
         aiGuide.userData = { type: 'ai_guide', name:'<i class="fas fa-robot text-indigo-500"></i> น้องแสงจันทร์', sub:'พูดคุยรับคำแนะนำฮีลใจ' }; scene.add(aiGuide); specialObjects.push(aiGuide);
 
+        // --- NPC Generation (Simulating other players offline) ---
+        for(let i=0; i<4; i++) {
+            const npc = playerGroup.clone();
+            npc.children[0].material = new THREE.MeshStandardMaterial({ color: playerColors[Math.floor(Math.random() * playerColors.length)].hex });
+            npc.children[1].material = npc.children[0].material;
+            npc.position.set((Math.random() - 0.5) * 40, 0, (Math.random() - 0.5) * 40);
+            scene.add(npc);
+            npcArray.push({ mesh: npc, target: npc.position.clone(), state: 'idle', timer: 0 });
+        }
+
         // --- Building Logic ---
         let houseGridIdx = 0; function getHousePos() { const sp=8, col=5; const r=Math.floor(houseGridIdx/col), c=houseGridIdx%col; houseGridIdx++; return {x:(c-Math.floor(col/2))*sp, z:-18-(r*sp)}; }
+        
         function syncHouses(data) {
-            const ids = data.map(d=>d.id); for(let i=houseMeshes.length-1;i>=0;i--){ if(!ids.includes(houseMeshes[i].userData.roomId)){ scene.remove(houseMeshes[i]); houseMeshes.splice(i,1); } }
+            const ids = data.map(d=>d.id); 
+            // Remove deleted
+            for(let i=houseMeshes.length-1;i>=0;i--){ 
+                if(!ids.includes(houseMeshes[i].userData.roomId)){ scene.remove(houseMeshes[i]); houseMeshes.splice(i,1); } 
+            }
+            // Add new
             data.forEach(rd => {
                 if(!houseMeshes.find(h=>h.userData.roomId===rd.id)) {
                     const g = new THREE.Group();
@@ -458,7 +472,10 @@
             });
         }
         function syncDecors(data) {
-            const ids=data.map(d=>d.id); for(let i=decorMeshes.length-1;i>=0;i--){ if(!ids.includes(decorMeshes[i].userData.id)){ scene.remove(decorMeshes[i]); decorMeshes.splice(i,1); } }
+            const ids=data.map(d=>d.id); 
+            for(let i=decorMeshes.length-1;i>=0;i--){ 
+                if(!ids.includes(decorMeshes[i].userData.id)){ scene.remove(decorMeshes[i]); decorMeshes.splice(i,1); } 
+            }
             data.forEach(dc => {
                 if(!decorMeshes.find(m=>m.userData.id===dc.id)){
                     let m;
@@ -481,7 +498,17 @@
                 const hits=raycaster.intersectObjects([...houseMeshes,...decorMeshes],true);
                 if(hits.length>0) {
                     let r=hits[0].object; while(r.parent&&r.parent!==scene) r=r.parent;
-                    if(r.userData&&r.userData.creatorId===currentUser?.uid){ try{ await deleteDoc(doc(db,'artifacts',appId,'public','data',r.userData.type==='house'?'rooms':'decorations',r.userData.id||r.userData.roomId)); r.visible=false; }catch(err){} }
+                    if(r.userData && r.userData.creatorId===currentUser?.uid){ 
+                        const idToDelete = r.userData.id||r.userData.roomId;
+                        if(r.userData.type==='house'){
+                            localDB.rooms = localDB.rooms.filter(x => x.id !== idToDelete);
+                            syncHouses(localDB.rooms);
+                        } else {
+                            localDB.decorations = localDB.decorations.filter(x => x.id !== idToDelete);
+                            syncDecors(localDB.decorations);
+                        }
+                        saveDB();
+                    }
                 } return;
             }
             const hits=raycaster.intersectObject(ground);
@@ -491,9 +518,12 @@
                     playerTarget.copy(pt); isMovingToClick=true; targetMarker.position.copy(pt); targetMarker.position.y=0.05; targetMarker.visible=true; targetMarker.scale.setScalar(1); playerGroup.lookAt(pt.x, playerGroup.position.y, pt.z);
                 } else if(buildMode==='road'||buildMode==='fence'||buildMode==='flower') {
                     const sX=buildMode==='flower'?pt.x:Math.round(pt.x/2)*2, sZ=buildMode==='flower'?pt.z:Math.round(pt.z/2)*2;
-                    const payload={type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt:serverTimestamp()};
+                    const payload={id: generateId(), type:buildMode, x:sX, z:sZ, creatorId:currentUser?.uid, createdAt: Date.now()};
                     if(buildMode==='flower') payload.color=['0xff69b4','0xffd700','0xdda0dd','0x87cefa','0xff4500'][Math.floor(Math.random()*5)];
-                    try{ await addDoc(collection(db,'artifacts',appId,'public','data','decorations'), payload); }catch(err){}
+                    
+                    localDB.decorations.push(payload);
+                    saveDB();
+                    syncDecors(localDB.decorations);
                 }
             }
         });
@@ -522,56 +552,13 @@
 
         window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
-        // --- Multiplayer Logic ---
-        function syncMultiplayer() {
-            if(!currentUser) return;
-            const now = Date.now();
-            if(now - lastPosSync > SYNC_RATE) {
-                lastPosSync = now;
-                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), {
-                    x: playerGroup.position.x, z: playerGroup.position.z, rotY: playerGroup.rotation.y,
-                    name: myDisplayName || getRandomName(currentUser.uid), color: myColorHex, lastActive: serverTimestamp()
-                }, {merge: true}).catch(e=>{});
-            }
-        }
-        function updateOtherPlayers(playersData) {
-            const now = Date.now(); const activeIds = []; const nCont = document.getElementById('nametags-container');
-            if(!nCont) return;
-            playersData.forEach(p => {
-                if(p.id === currentUser?.uid) return;
-                activeIds.push(p.id);
-                if(!onlinePlayers.has(p.id)) {
-                    const mesh = createPlayerMesh(p.color || '#fff'); scene.add(mesh);
-                    const tag = document.createElement('div'); tag.className = 'player-nametag';
-                    const nSpan = document.createElement('span'); nSpan.innerText = p.name;
-                    const eSpan = document.createElement('span'); eSpan.className = 'player-emote';
-                    tag.appendChild(eSpan); tag.appendChild(nSpan); nCont.appendChild(tag);
-                    
-                    onlinePlayers.set(p.id, { mesh, labelElement: tag, emoteElement: eSpan, targetPos: new THREE.Vector3(p.x, 0, p.z), targetRot: p.rotY, lastUpdate: now });
-                    mesh.position.set(p.x, 0, p.z); mesh.rotation.y = p.rotY;
-                } else {
-                    const pObj = onlinePlayers.get(p.id);
-                    pObj.targetPos.set(p.x, 0, p.z); pObj.targetRot = p.rotY; pObj.lastUpdate = now;
-                    if(p.emote && p.emoteTime > (pObj.lastEmoteTime||0)) {
-                        pObj.lastEmoteTime = p.emoteTime;
-                        pObj.emoteElement.innerText = p.emote; pObj.emoteElement.style.display = 'block';
-                        pObj.emoteElement.style.animation = 'none'; void pObj.emoteElement.offsetWidth; pObj.emoteElement.style.animation = 'float-up 2s ease-out forwards';
-                        setTimeout(()=> { pObj.emoteElement.style.display='none'; }, 2000);
-                    }
-                }
-            });
-            for(let [id, pObj] of onlinePlayers.entries()) {
-                if(!activeIds.includes(id) || now - pObj.lastUpdate > 10000) {
-                    scene.remove(pObj.mesh); pObj.labelElement.remove(); onlinePlayers.delete(id);
-                }
-            }
-        }
-
-        // Send Emote
+        // Show floating heart animation (Local Emotes)
         document.querySelectorAll('.emote-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                if(!currentUser) return; const e = btn.dataset.emote;
-                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), { emote: e, emoteTime: Date.now() }, {merge:true});
+                const e = btn.dataset.emote;
+                const h = document.createElement('div'); h.innerHTML = e; h.className = 'floating-heart text-2xl'; 
+                h.style.left = '50%'; h.style.top = '40%'; document.body.appendChild(h); 
+                setTimeout(() => h.remove(), 2000);
             });
         });
 
@@ -624,25 +611,26 @@
             camera.position.x += (playerGroup.position.x - camera.position.x)*0.05; camera.position.z += (playerGroup.position.z+15 - camera.position.z)*0.05; camera.lookAt(playerGroup.position);
             if(targetMarker.visible) { targetMarker.scale.addScalar(0.02); if(targetMarker.scale.x>1.5) targetMarker.scale.setScalar(1); }
 
-            syncMultiplayer();
-
-            // Interpolate Other Players
-            const tempV = new THREE.Vector3();
-            for(let [id, p] of onlinePlayers.entries()) {
-                p.mesh.position.lerp(p.targetPos, 0.1);
-                const isMoving = p.mesh.position.distanceTo(p.targetPos) > 0.05;
-                p.mesh.children[0].position.y = 0.65 + (isMoving ? Math.abs(Math.sin(time*0.01))*0.15 : 0);
-                p.mesh.children[1].position.y = 1.3 + (isMoving ? Math.abs(Math.sin(time*0.01))*0.15 : 0);
-                
-                const currentRot = new THREE.Quaternion().setFromEuler(p.mesh.rotation);
-                const targetRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), p.targetRot);
-                currentRot.slerp(targetRot, 0.1); p.mesh.rotation.setFromQuaternion(currentRot);
-
-                tempV.setFromMatrixPosition(p.mesh.matrixWorld); tempV.y += 2.2; tempV.project(camera);
-                const x = (tempV.x * .5 + .5) * window.innerWidth; const y = (tempV.y * -.5 + .5) * window.innerHeight;
-                if(tempV.z < 1) { p.labelElement.style.display = 'flex'; p.labelElement.style.left = `${x}px`; p.labelElement.style.top = `${y}px`; }
-                else p.labelElement.style.display = 'none';
-            }
+            // NPC Animations
+            npcArray.forEach(npc => {
+                npc.timer -= 1;
+                if(npc.timer <= 0) {
+                    if(npc.state === 'idle') {
+                        npc.state = 'moving'; npc.timer = 100 + Math.random() * 200;
+                        npc.target.set(npc.mesh.position.x + (Math.random()-0.5)*15, 0, npc.mesh.position.z + (Math.random()-0.5)*15);
+                        npc.mesh.lookAt(npc.target);
+                    } else { npc.state = 'idle'; npc.timer = 100 + Math.random() * 200; }
+                }
+                if(npc.state === 'moving') {
+                    const dist = npc.mesh.position.distanceTo(npc.target);
+                    if(dist > 0.1) {
+                        const dir = new THREE.Vector3().subVectors(npc.target, npc.mesh.position).normalize();
+                        npc.mesh.position.add(dir.multiplyScalar(0.05));
+                        npc.mesh.children[0].position.y = 0.65 + Math.abs(Math.sin(time*0.01))*0.15;
+                        npc.mesh.children[1].position.y = 1.3 + Math.abs(Math.sin(time*0.01))*0.15;
+                    } else { npc.state = 'idle'; }
+                } else { npc.mesh.children[0].position.y = 0.65; npc.mesh.children[1].position.y = 1.3; }
+            });
 
             // Proximity Logic
             if (!isUIOpen && buildMode==='walk') {
@@ -725,22 +713,18 @@
         
         document.querySelectorAll('.tool-btn').forEach(b => b.addEventListener('click', ()=>{ document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); buildMode=b.dataset.tool; gridHelper.visible=(buildMode==='road'||buildMode==='fence'); previewBox.visible=false; }));
 
-        // Init App
-        window.onload = async () => {
-            try { if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token); else await signInAnonymously(auth); } catch(e){}
-            onAuthStateChanged(auth, u => {
-                if(u) {
-                    currentUser=u; updateId(); 
-                    const overlayLoading = document.getElementById('loading-overlay');
-                    if(overlayLoading) { overlayLoading.style.opacity='0'; setTimeout(()=>overlayLoading.classList.add('hidden-panel'),500); }
-                    
-                    onSnapshot(collection(db,'artifacts',appId,'public','data','rooms'), s => { const r=[]; s.forEach(d=>r.push({id:d.id,...d.data()})); roomsData=r; syncHouses(r); });
-                    onSnapshot(collection(db,'artifacts',appId,'public','data','decorations'), s => { const d=[]; s.forEach(x=>d.push({id:x.id,...x.data()})); syncDecors(d); });
-                    onSnapshot(collection(db,'artifacts',appId,'public','data','wishes'), s => { const w=[]; s.forEach(d=>w.push({id:d.id,...d.data()})); wishesData=w.sort((a,b)=>(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0)); renderWishes(); });
-                    onSnapshot(collection(db,'artifacts',appId,'public','data','players'), s => { const p=[]; s.forEach(d=>p.push({id:d.id,...d.data()})); updateOtherPlayers(p); });
-                    animate();
-                }
-            });
+        // Init App (Local Mode)
+        window.onload = () => {
+            updateId(); 
+            const overlayLoading = document.getElementById('loading-overlay');
+            if(overlayLoading) { overlayLoading.style.opacity='0'; setTimeout(()=>overlayLoading.classList.add('hidden-panel'),500); }
+            
+            // Load Local Data
+            syncHouses(localDB.rooms);
+            syncDecors(localDB.decorations);
+            renderWishes();
+            
+            animate();
         };
 
         // Standard Modals
@@ -767,20 +751,21 @@
                 if(!q||!o1||!o2) return alert("กรุณากรอกข้อมูลให้ครบถ้วน"); 
                 qD={q,options:[o1,o2],correctIndex:0}; 
             }
-            const btn=e.target.querySelector('button[type="submit"]'); 
-            if(btn) { btn.disabled=true; btn.innerText="กำลังสร้าง..."; }
-            try{ 
-                await addDoc(collection(db,'artifacts',appId,'public','data','rooms'), {name:nm,description:dsc,style:st,hasQuiz:hq,quizData:qD,creatorId:currentUser?.uid,createdAt:serverTimestamp()}); 
-                setModal(document.getElementById('create-modal'),false); 
-                e.target.reset(); 
-                const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel'); 
-            }catch(err){}
-            if(btn) { btn.disabled=false; btn.innerText="สร้างบ้านและวางลงในพื้นที่"; }
+            
+            // Save locally
+            const newRoom = { id: generateId(), name:nm, description:dsc, style:st, hasQuiz:hq, quizData:qD, creatorId:currentUser?.uid, createdAt: Date.now() };
+            localDB.rooms.push(newRoom);
+            saveDB();
+            syncHouses(localDB.rooms);
+
+            setModal(document.getElementById('create-modal'),false); 
+            e.target.reset(); 
+            const qSet = document.getElementById('quiz-setup'); if(qSet) qSet.classList.add('hidden-panel'); 
         });
 
         // Enter Room & Interactions
         bindEvent('prompt-enter-btn', 'click', () => {
-            if(!hoveredHouseId)return; const rd=roomsData.find(r=>r.id===hoveredHouseId); if(!rd)return;
+            if(!hoveredHouseId)return; const rd=localDB.rooms.find(r=>r.id===hoveredHouseId); if(!rd)return;
             if(lockedRooms[rd.id]) return alert("ประตูบ้านนี้ล็อค เนื่องจากคุณตอบคำถามผิดเกินกำหนด");
             if(rd.hasQuiz && rd.quizData){ 
                 if(sessionStorage.getItem(`passed_${rd.id}`)) openChat(rd); 
@@ -800,10 +785,10 @@
         bindEvent('btn-delete-house', 'click', async e => { 
             e.stopPropagation(); 
             if(confirm('คุณแน่ใจหรือไม่ว่าต้องการรื้อถอนบ้านหลังนี้?')){ 
-                try{
-                    await deleteDoc(doc(db,'artifacts',appId,'public','data','rooms',hoveredHouseId)); 
-                    const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel');
-                }catch(er){} 
+                localDB.rooms = localDB.rooms.filter(r => r.id !== hoveredHouseId);
+                saveDB();
+                syncHouses(localDB.rooms);
+                const prm = document.getElementById('interaction-prompt'); if(prm) prm.classList.add('hidden-panel');
             } 
         });
 
@@ -822,15 +807,21 @@
         // Wish
         function renderWishes() { 
             const lst=document.getElementById('wish-list'); if(!lst) return;
-            if(!wishesData.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
+            if(!localDB.wishes.length){lst.innerHTML=`<div class="text-center text-pink-400 mt-10">ว่างเปล่า เป็นคนแรกสิ!</div>`;return;} 
             lst.innerHTML=''; 
-            wishesData.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
+            
+            // Sort new first
+            const sorted = [...localDB.wishes].sort((a,b)=> b.createdAt - a.createdAt);
+            sorted.forEach(w=>{const d=document.createElement('div');d.className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100 transform hover:scale-105 transition-transform";d.innerHTML=`<p class="text-pink-900 text-sm mb-2">"${w.text}"</p><p class="text-[10px] text-pink-400 text-right">- ${w.userName}</p>`;lst.appendChild(d);}); 
         }
         bindEvent('btn-close-wish', 'click', ()=>setModal(document.getElementById('wish-modal'),false));
         bindEvent('wish-form', 'submit', async e => { 
             e.preventDefault(); const wInp = document.getElementById('wish-input'); 
             const t = filterText(wInp?.value.trim() || ''); if(!t) return; if(wInp) wInp.value=''; 
-            try{await addDoc(collection(db,'artifacts',appId,'public','data','wishes'),{text:t,userId:currentUser?.uid,userName:myDisplayName||getRandomName(currentUser?.uid||'x'),createdAt:serverTimestamp()});}catch(er){} 
+            
+            localDB.wishes.push({ id: generateId(), text:t, userId:currentUser?.uid, userName:myDisplayName||getRandomName(currentUser?.uid||'x'), createdAt: Date.now() });
+            saveDB();
+            renderWishes();
         });
 
         // Quiz Handling
@@ -862,31 +853,51 @@
         bindEvent('btn-quiz-opt2', 'click', handleAns); 
         bindEvent('btn-cancel-quiz', 'click', () => setModal(document.getElementById('quiz-modal'), false));
 
-        // Chat
+        // Chat (Local rendering)
+        function renderChatMessages(rmId) {
+            const cMsgs = document.getElementById('chat-messages'); if(!cMsgs) return;
+            const ms = localDB.messages.filter(m=>m.roomId===rmId).sort((a,b)=> a.createdAt - b.createdAt);
+            
+            if(!ms.length){cMsgs.innerHTML='ยังไม่มีข้อความ เริ่มคุยกันได้เลย!'; return;} 
+            cMsgs.innerHTML='';
+            ms.forEach(m=>{ 
+                const isMe=m.userId===currentUser?.uid; 
+                const d=document.createElement('div'); d.className=`flex flex-col ${isMe?'items-end':'items-start'}`; 
+                d.innerHTML=`<span class="text-[10px] mb-0.5 px-2" style="color:${m.userColor||'#10b981'}">${m.userName}</span><div class="max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe?'bg-emerald-500 text-white rounded-br-sm':'bg-white border border-emerald-100 text-emerald-800 rounded-bl-sm'}">${m.text}</div>`; 
+                cMsgs.appendChild(d); 
+            }); 
+            cMsgs.scrollTop=cMsgs.scrollHeight;
+        }
+
         function openChat(rm) {
             currentActiveRoom=rm; 
             const rName = document.getElementById('chat-room-name'); if(rName) rName.innerText=rm.name; 
             const rDesc = document.getElementById('chat-room-desc'); if(rDesc) rDesc.innerText=rm.description||''; 
-            const cMsgs = document.getElementById('chat-messages'); if(cMsgs) cMsgs.innerHTML='โหลด...'; 
-            setModal(document.getElementById('chat-modal'),true);
             
-            if(unsubscribeMessages) unsubscribeMessages();
-            unsubscribeMessages = onSnapshot(collection(db,'artifacts',appId,'public','data','messages'), s => {
-                let ms=[]; s.forEach(d=>ms.push({id:d.id,...d.data()})); ms=ms.filter(m=>m.roomId===rm.id).sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
-                if(cMsgs) {
-                    if(!ms.length){cMsgs.innerHTML='ว่างเปล่า...';return;} 
-                    cMsgs.innerHTML='';
-                    ms.forEach(m=>{ const isMe=m.userId===currentUser?.uid; const d=document.createElement('div'); d.className=`flex flex-col ${isMe?'items-end':'items-start'}`; d.innerHTML=`<span class="text-[10px] mb-0.5 px-2" style="color:${m.userColor||'#10b981'}">${m.userName}</span><div class="max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe?'bg-emerald-500 text-white rounded-br-sm':'bg-white border border-emerald-100 text-emerald-800 rounded-bl-sm'}">${m.text}</div>`; cMsgs.appendChild(d); }); 
-                    cMsgs.scrollTop=cMsgs.scrollHeight;
-                }
-            });
+            setModal(document.getElementById('chat-modal'),true);
+            renderChatMessages(rm.id);
         }
-        bindEvent('btn-close-chat', 'click', () => { setModal(document.getElementById('chat-modal'),false); if(unsubscribeMessages){unsubscribeMessages();unsubscribeMessages=null;} currentActiveRoom=null; });
+        bindEvent('btn-close-chat', 'click', () => { setModal(document.getElementById('chat-modal'),false); currentActiveRoom=null; });
+        
         bindEvent('chat-form', 'submit', async e => { 
             e.preventDefault(); const cInp = document.getElementById('chat-input'); const t = filterText(cInp?.value.trim() || ''); 
             if(!t||!currentUser||!currentActiveRoom) return; 
             if(cInp) cInp.value=''; 
-            try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName||getRandomName(currentUser.uid),userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
+            
+            // Save user msg
+            localDB.messages.push({ id: generateId(), roomId:currentActiveRoom.id, text:t, userId:currentUser.uid, userName:myDisplayName||getRandomName(currentUser.uid), userColor:myColorHex, createdAt: Date.now() });
+            saveDB();
+            renderChatMessages(currentActiveRoom.id);
+
+            // Fake AI Reply in Local Mode
+            if(Math.random() > 0.6) {
+                setTimeout(() => {
+                    if(!currentActiveRoom) return;
+                    localDB.messages.push({ id: generateId(), roomId:currentActiveRoom.id, text: aiQuotes[Math.floor(Math.random()*aiQuotes.length)], userId: 'ai_bot', userName: 'น้องแสงจันทร์ (AI)', userColor: '#818cf8', createdAt: Date.now() });
+                    saveDB();
+                    renderChatMessages(currentActiveRoom.id);
+                }, 1500);
+            }
         });
 
     </script>
