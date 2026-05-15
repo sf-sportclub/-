@@ -76,64 +76,29 @@
     <!-- UI Layer -->
     <div id="ui-layer">
         
-        <!-- ==================== AUTHENTICATION OVERLAY ==================== -->
-        <div id="auth-overlay" class="interactive-ui fixed inset-0 bg-emerald-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-            
-            <!-- Login Section -->
-            <div id="auth-login" class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all">
+        <!-- ==================== CHARACTER ENTRY / PROFILE MODAL ==================== -->
+        <!-- Acts as both the login screen and the "Change Character" screen -->
+        <div id="profile-modal" class="interactive-ui fixed inset-0 bg-emerald-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative transition-all">
+                <button id="btn-close-profile" class="hidden-panel absolute top-4 right-4 text-emerald-400 hover:text-emerald-700 transition-colors"><i class="fas fa-times text-xl"></i></button>
                 <div class="text-center mb-6">
                     <i class="fas fa-leaf text-4xl text-emerald-500 mb-2"></i>
-                    <h2 class="text-3xl font-bold text-emerald-800">เข้าสู่ระบบ</h2>
-                    <p class="text-emerald-600 text-sm mt-1">พื้นที่สบายใจ 3D</p>
+                    <h2 id="profile-modal-title" class="text-3xl font-bold text-emerald-800">เข้าสู่หมู่บ้าน</h2>
                 </div>
-                <form id="form-login" class="space-y-4">
-                    <input type="email" id="login-email" required placeholder="อีเมล" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
-                    <input type="password" id="login-password" required placeholder="รหัสผ่าน" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">เข้าเล่นเกม</button>
-                </form>
-                <div class="mt-5 flex justify-between text-sm">
-                    <button id="btn-to-register" class="text-emerald-600 font-medium hover:underline">สร้างตัวละครใหม่</button>
-                    <button id="btn-to-forgot" class="text-emerald-500 hover:underline">ลืมรหัสผ่าน?</button>
-                </div>
-            </div>
-
-            <!-- Register Section -->
-            <div id="auth-register" class="hidden-panel bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all max-h-[95vh] overflow-y-auto">
-                <h2 class="text-2xl font-bold text-emerald-800 mb-6 text-center">สร้างตัวละครใหม่</h2>
-                <form id="form-register" class="space-y-4">
+                <div class="space-y-4">
                     <div>
-                        <label class="block text-xs text-emerald-600 font-bold mb-1">ข้อมูลบัญชี</label>
-                        <input type="email" id="reg-email" required placeholder="อีเมล" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400 mb-3">
-                        <input type="password" id="reg-password" required placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" minlength="6" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+                        <label class="block text-sm text-emerald-700 font-medium mb-1 text-center">ชื่อตัวละครของคุณ</label>
+                        <input type="text" id="profile-name" required class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 focus:ring-2 focus:ring-emerald-400 outline-none text-center font-bold text-emerald-900" placeholder="เช่น น้องใบไม้">
                     </div>
-                    <div class="border-t border-emerald-100 my-2 pt-2">
-                        <label class="block text-xs text-emerald-600 font-bold mb-1">ตัวละครของคุณ</label>
-                        <input type="text" id="reg-name" required placeholder="ชื่อตัวละคร (เช่น น้องใบไม้)" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400 mb-3">
-                        <div>
-                            <label class="block text-sm text-emerald-700 font-medium mb-2 text-center">เลือกสีประจำตัว</label>
-                            <div class="flex justify-center gap-2" id="reg-color-container"></div>
-                        </div>
+                    <div class="pt-2">
+                        <label class="block text-sm text-emerald-700 font-medium mb-2 text-center">เลือกสีประจำตัว</label>
+                        <div class="flex justify-center gap-3 flex-wrap" id="color-picker-container"></div>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-2">สร้างและเข้าเล่น</button>
-                </form>
-                <div class="mt-4 text-center text-sm">
-                    <button id="btn-to-login" class="text-emerald-600 font-medium hover:underline">มีบัญชีอยู่แล้ว? เข้าสู่ระบบ</button>
+                    <button id="btn-save-profile" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-6">
+                        เริ่มเล่นเกม
+                    </button>
                 </div>
             </div>
-
-            <!-- Forgot Password Section -->
-            <div id="auth-forgot" class="hidden-panel bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transition-all">
-                <h2 class="text-2xl font-bold text-emerald-800 mb-2 text-center">ลืมรหัสผ่าน</h2>
-                <p class="text-sm text-emerald-600 text-center mb-6">ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปที่อีเมลของคุณ</p>
-                <form id="form-forgot" class="space-y-4">
-                    <input type="email" id="forgot-email" required placeholder="อีเมลที่ลงทะเบียนไว้" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">ส่งลิงก์ไปที่อีเมล</button>
-                </form>
-                <div class="mt-4 text-center text-sm">
-                    <button id="btn-forgot-to-login" class="text-emerald-600 font-medium hover:underline">กลับไปหน้าเข้าสู่ระบบ</button>
-                </div>
-            </div>
-            
         </div>
         <!-- ================================================================ -->
 
@@ -143,9 +108,10 @@
                 <i class="fas fa-leaf text-emerald-500"></i> หมู่บ้านสบายใจ
             </h1>
             <div class="flex items-center gap-2 sm:gap-4">
-                <button id="btn-show-profile" class="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-emerald-50 transition-colors border border-emerald-200 shadow-sm bg-white">
+                <button id="btn-show-profile" class="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-emerald-50 transition-colors border border-emerald-200 shadow-sm bg-white" title="เปลี่ยนตัวละคร">
                     <div id="ui-color-dot" class="w-4 h-4 rounded-full bg-[#ffeebb]"></div>
                     <span id="user-name-display" class="text-sm font-medium text-emerald-700 max-w-[100px] truncate">ผู้เล่น</span>
+                    <i class="fas fa-pencil-alt text-emerald-400 text-xs ml-1"></i>
                 </button>
                 <button id="btn-show-create" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 sm:px-4 py-2 rounded-full shadow-md transition-all text-sm font-medium flex items-center">
                     <i class="fas fa-plus sm:mr-1"></i> <span class="hidden sm:inline">สร้างบ้าน</span>
@@ -209,33 +175,6 @@
             </div>
         </div>
 
-        <!-- Profile Modal -->
-        <div id="profile-modal" class="interactive-ui hidden-panel fixed inset-0 bg-emerald-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-emerald-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-emerald-800">ตั้งค่าตัวตน</h2>
-                    <button id="btn-close-profile" class="text-emerald-400 hover:text-emerald-700"><i class="fas fa-times text-xl"></i></button>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-emerald-700 font-medium mb-1">ชื่อของคุณ</label>
-                        <input type="text" id="profile-name" class="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 focus:ring-2 focus:ring-emerald-400 outline-none text-center font-medium" placeholder="เช่น น้องใบไม้">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-emerald-700 font-medium mb-2">สีตัวละคร</label>
-                        <div class="flex justify-center gap-3" id="color-picker-container"></div>
-                    </div>
-                    <button id="btn-save-profile" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors mt-2">
-                        บันทึกการตั้งค่า
-                    </button>
-                    <!-- Logout Button -->
-                    <button id="btn-logout" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 rounded-xl transition-colors mt-4 border border-red-200">
-                        <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
-                    </button>
-                </div>
-            </div>
-        </div>
-        
         <!-- Create Room Modal -->
         <div id="create-modal" class="interactive-ui hidden-panel fixed inset-0 bg-emerald-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-emerald-100 max-h-[90vh] overflow-y-auto">
@@ -382,20 +321,20 @@
         </div>
 
         <!-- Loading Overlay -->
-        <div id="loading-overlay" class="fixed inset-0 bg-emerald-50 flex flex-col items-center justify-center z-[100] transition-opacity duration-500">
+        <div id="loading-overlay" class="interactive-ui fixed inset-0 bg-emerald-50 flex flex-col items-center justify-center z-[100] transition-opacity duration-500">
             <i class="fas fa-seedling text-emerald-500 text-6xl animate-bounce mb-4"></i>
-            <h2 class="text-2xl font-bold text-emerald-800">เชื่อมต่อเข้าสู่หมู่บ้าน...</h2>
+            <h2 class="text-2xl font-bold text-emerald-800">กำลังเชื่อมต่อ...</h2>
         </div>
     </div>
 
     <!-- Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
-        // --- Helper for Safe Event Listeners (Prevents null crashes) ---
+        // --- Helper for Safe Event Listeners ---
         const bindEvent = (id, eventType, handler) => {
             const el = document.getElementById(id);
             if (el) el.addEventListener(eventType, handler);
@@ -405,18 +344,19 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app); 
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'safe-space-v5-multiplayer';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'safe-space-v6-simple';
 
         // --- Core States ---
         let currentUser = null;
-        const natureNames = ["น้องใบไม้","พี่ก้อนเมฆ","สายลม","ต้นโอ๊ก","ดอกหญ้า","หยดน้ำ","แสงแดด","ภูเขา","แม่น้ำ","นกน้อย"];
         const playerColors = [{id:'peach',hex:'#ffeebb'},{id:'mint',hex:'#a7f3d0'},{id:'sky',hex:'#bae6fd'},{id:'rose',hex:'#fecdd3'},{id:'lav',hex:'#e9d5ff'},{id:'sun',hex:'#fef08a'}];
-        let myDisplayName = localStorage.getItem('nature3DName') || ''; let myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
-        const getRandomName = uid => { let h=0; for(let i=0;i<uid.length;i++) h=uid.charCodeAt(i)+((h<<5)-h); return natureNames[Math.abs(h)%natureNames.length]; };
+        
+        // Auto-load saved identity
+        let myDisplayName = localStorage.getItem('nature3DName') || ''; 
+        let myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
 
         // --- Multiplayer State ---
-        const onlinePlayers = new Map(); // uid -> { mesh, nameTag, targetPos, targetRot, lastUpdate }
-        let lastPosSync = 0; const SYNC_RATE = 200; // ms
+        const onlinePlayers = new Map();
+        let lastPosSync = 0; const SYNC_RATE = 200;
 
         let roomsData = []; let decorsData = []; let wishesData = [];
         let lockedRooms = JSON.parse(localStorage.getItem('nature3DLocks') || '{}');
@@ -426,10 +366,9 @@
         let unsubRooms, unsubDecors, unsubWishes, unsubPlayers, unsubMessages;
         let isAnimating = false;
         
-        // Mobile Joy state
         let joyActive = false; let joyDir = new THREE.Vector2(0,0);
 
-        // --- Profanity Filter (Basic) ---
+        // --- Profanity Filter ---
         const badWords = ['fuck','shit','ass','bitch','ควย','หี','แตด','เย็ด','สัส','เหี้ย'];
         const filterText = text => { let t = text; badWords.forEach(w => { const r = new RegExp(w, 'gi'); t = t.replace(r, '***'); }); return t; };
 
@@ -447,7 +386,7 @@
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ color: 0x6bbd6b, roughness: 0.9 }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-        // Weather System (Rain)
+        // Weather System
         const rainGeo = new THREE.BufferGeometry(); const rainCount = 1500;
         const rainPos = new Float32Array(rainCount * 3);
         for(let i=0;i<rainCount*3;i++) rainPos[i] = (Math.random()-0.5)*100;
@@ -464,18 +403,17 @@
             const eyeM = new THREE.MeshBasicMaterial({ color: 0x333 }); const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), eyeM);
             const er=eye.clone(); er.position.set(0.2, 1.1, 0.45); const el=eye.clone(); el.position.set(-0.2, 1.1, 0.45);
             group.add(body, head, er, el); 
-            group.userData = { color: color }; // Store current color
+            group.userData = { color: color }; 
             return group;
         }
         const playerGroup = createPlayerMesh(myColorHex); scene.add(playerGroup);
 
-        // Marker & Preview
         const targetMarker = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.6, 16), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
         targetMarker.rotation.x = -Math.PI/2; targetMarker.visible = false; scene.add(targetMarker);
         const gridHelper = new THREE.GridHelper(200, 100, 0xffffff, 0xffffff); gridHelper.position.y = 0.01; gridHelper.material.opacity = 0.1; gridHelper.material.transparent=true; gridHelper.visible=false; scene.add(gridHelper);
         const previewBox = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 2), new THREE.MeshBasicMaterial({ color: 0x059669, transparent: true, opacity: 0.5 })); previewBox.visible = false; scene.add(previewBox);
 
-        // --- Environmental Optimization (InstancedMesh Trees) ---
+        // InstancedMesh Trees
         const treeCount = 150;
         const trunkI = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.3, 0.4, 2), new THREE.MeshStandardMaterial({ color: 0x5c4033 }), treeCount);
         const leafI = new THREE.InstancedMesh(new THREE.ConeGeometry(2, 4, 6), new THREE.MeshStandardMaterial({ color: 0x2e8b57 }), treeCount);
@@ -489,12 +427,11 @@
         }
         scene.add(trunkI, leafI);
 
-        // Collections
         const houseMeshes = []; const decorMeshes = []; const specialObjects = [];
-        let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = false;
+        let hoveredHouseId = null; let hoveredSpecialObj = null; let isUIOpen = true; // start open for login
         let playerTarget = new THREE.Vector3(0,0,0); let isMovingToClick = false; const playerSpeed = 0.15;
 
-        // --- Special Objects ---
+        // Special Objects
         const wishTree = new THREE.Group();
         const trW = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 3), new THREE.MeshStandardMaterial({ color: 0x4a3b32 })); trW.position.y=1.5; trW.castShadow=true;
         const lfW = new THREE.Mesh(new THREE.SphereGeometry(3.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffb7c5 })); lfW.position.y=4.5; lfW.castShadow=true;
@@ -505,13 +442,12 @@
         const fLight = new THREE.PointLight(0xffaa00, 1.5, 15); fLight.position.y=1; campfire.add(fLight);
         campfire.position.set(15, 0, 8); campfire.userData = { type:'campfire', name:'<i class="fas fa-fire text-orange-500"></i> ลานผิงไฟ', sub:'รับพลังงานบวก' }; scene.add(campfire); specialObjects.push(campfire);
 
-        // AI Guide NPC
         const aiGuide = createPlayerMesh('#818cf8'); aiGuide.position.set(0,0,-8);
         const halo = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 8, 16), new THREE.MeshBasicMaterial({color: 0xe0e7ff})); halo.position.y=2; halo.rotation.x=Math.PI/2; aiGuide.add(halo);
         const glowLight = new THREE.PointLight(0x818cf8, 1, 5); glowLight.position.y=1; aiGuide.add(glowLight);
         aiGuide.userData = { type: 'ai_guide', name:'<i class="fas fa-robot text-indigo-500"></i> น้องแสงจันทร์', sub:'พูดคุยรับคำแนะนำฮีลใจ' }; scene.add(aiGuide); specialObjects.push(aiGuide);
 
-        // --- Building Logic ---
+        // Building Logic
         let houseGridIdx = 0; function getHousePos() { const sp=8, col=5; const r=Math.floor(houseGridIdx/col), c=houseGridIdx%col; houseGridIdx++; return {x:(c-Math.floor(col/2))*sp, z:-18-(r*sp)}; }
         
         function syncHouses(data) {
@@ -549,7 +485,7 @@
             });
         }
 
-        // --- Controls ---
+        // Controls
         const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
         window.addEventListener('keydown', e => { if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')return; if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()]=true; });
         window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()]=false; });
@@ -585,7 +521,7 @@
             if(hits.length>0){ previewBox.position.set(Math.round(hits[0].point.x/2)*2, 0.1, Math.round(hits[0].point.z/2)*2); previewBox.visible=true; } else previewBox.visible=false;
         });
 
-        // Virtual Joystick Logic
+        // Virtual Joystick
         const joyZone = document.getElementById('joystick-zone'); const joyKnob = document.getElementById('joystick-knob');
         let joyCenter = {x:0, y:0};
         if(joyZone) {
@@ -603,15 +539,15 @@
 
         window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
-        // --- Network Logic (Firebase) ---
+        // Network Logic (Firebase)
         function syncMultiplayer() {
-            if(!currentUser) return;
+            if(!currentUser || !myDisplayName) return;
             const now = Date.now();
             if(now - lastPosSync > SYNC_RATE) {
                 lastPosSync = now;
                 setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), {
                     x: playerGroup.position.x, z: playerGroup.position.z, rotY: playerGroup.rotation.y,
-                    name: myDisplayName || getRandomName(currentUser.uid), color: myColorHex, lastActive: serverTimestamp()
+                    name: myDisplayName, color: myColorHex, lastActive: serverTimestamp()
                 }, {merge: true}).catch(e=>{});
             }
         }
@@ -635,7 +571,6 @@
                     const pObj = onlinePlayers.get(p.id);
                     pObj.targetPos.set(p.x, 0, p.z); pObj.targetRot = p.rotY; pObj.lastUpdate = now;
                     
-                    // Update Name/Color if changed
                     if (pObj.labelElement.children[1].innerText !== p.name) pObj.labelElement.children[1].innerText = p.name;
                     if (pObj.mesh.userData.color !== p.color) {
                         pObj.mesh.userData.color = p.color;
@@ -650,7 +585,6 @@
                     }
                 }
             });
-            // Remove offline players
             for(let [id, pObj] of onlinePlayers.entries()) {
                 if(!activeIds.includes(id) || now - pObj.lastUpdate > 12000) {
                     scene.remove(pObj.mesh); pObj.labelElement.remove(); onlinePlayers.delete(id);
@@ -658,27 +592,24 @@
             }
         }
 
-        // Send Emote
         document.querySelectorAll('.emote-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                if(!currentUser) return; const e = btn.dataset.emote;
+                if(!currentUser || !myDisplayName) return; const e = btn.dataset.emote;
                 setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid), { emote: e, emoteTime: Date.now() }, {merge:true});
             });
         });
 
-        // --- Core Loop ---
+        // Core Loop
         function animate() {
             if(!isAnimating) return;
             requestAnimationFrame(animate); const time = Date.now();
             
-            // Day/Night Cycle
             const dayCycleStr = (time * 0.00005) % (Math.PI*2);
             const isNight = Math.sin(dayCycleStr) < -0.2;
             const skyColor = new THREE.Color().lerpColors(new THREE.Color(0x0a0a2a), new THREE.Color(0x87CEEB), (Math.sin(dayCycleStr)+1)/2);
             scene.background = skyColor; scene.fog.color = skyColor;
             dirLight.intensity = Math.max(0.1, (Math.sin(dayCycleStr)+1)/2 * 0.8);
             
-            // Weather
             const isRaining = Math.cos(time * 0.00001) > 0.8;
             if(isRaining) {
                 rainSystem.visible = true; const pos = rainSystem.geometry.attributes.position.array;
@@ -686,14 +617,12 @@
                 rainSystem.geometry.attributes.position.needsUpdate=true;
             } else rainSystem.visible = false;
 
-            // UI HUD Update
             const uiTime = new Date(); 
             const envTime = document.getElementById('env-time'); if(envTime) envTime.innerText = uiTime.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
             const envIcon = document.getElementById('env-icon'); if(envIcon) envIcon.className = isNight ? 'fas fa-moon text-indigo-300' : (isRaining ? 'fas fa-cloud-rain text-blue-400' : 'fas fa-sun text-amber-500');
 
             if(fireM) { fireM.scale.y = 1+Math.sin(time*0.01)*0.15; fLight.intensity=1.5+Math.sin(time*0.02)*0.3; }
 
-            // Player Movement (Local)
             if (!isUIOpen) {
                 let mX=0, mZ=0;
                 if(keys.w||keys.arrowup) mZ-=1; if(keys.s||keys.arrowdown) mZ+=1; if(keys.a||keys.arrowleft) mX-=1; if(keys.d||keys.arrowright) mX+=1;
@@ -718,7 +647,6 @@
 
             syncMultiplayer();
 
-            // Interpolate Other Players
             const tempV = new THREE.Vector3();
             for(let [id, p] of onlinePlayers.entries()) {
                 p.mesh.position.lerp(p.targetPos, 0.1);
@@ -736,7 +664,6 @@
                 else p.labelElement.style.display = 'none';
             }
 
-            // Proximity Logic
             if (!isUIOpen && buildMode==='walk') {
                 let nH=null, mDH=3.5;
                 for (let h of houseMeshes) { const d=playerGroup.position.distanceTo(h.position); if(d<mDH){mDH=d; nH=h;} h.children[h.children.length-1].material.emissive.setHex(d<3.5? (isNight?0x666644:0x444444) : 0x000000); }
@@ -782,84 +709,35 @@
             renderer.render(scene, camera);
         }
 
-        // --- UI Flow & Safe Event Binding ---
+        // --- UI Flow & Identity System ---
         function setModal(m, show) { 
             if(!m) return;
             if(show){m.classList.remove('hidden-panel'); isUIOpen=true; for(let k in keys)keys[k]=false; joyActive=false;} 
             else {m.classList.add('hidden-panel'); isUIOpen=false;} 
         }
+
         function updateId() { 
             const nDisp = document.getElementById('user-name-display');
             const cDot = document.getElementById('ui-color-dot');
-            if(nDisp) nDisp.innerText=myDisplayName||getRandomName(currentUser?.uid||'x'); 
-            if(cDot) cDot.style.backgroundColor=myColorHex; 
-            playerGroup.children[0].material.color.set(myColorHex); playerGroup.children[1].material.color.set(myColorHex); 
+            if(nDisp) nDisp.innerText = myDisplayName || 'ยังไม่มีชื่อ'; 
+            if(cDot) cDot.style.backgroundColor = myColorHex; 
+            playerGroup.children[0].material.color.set(myColorHex); 
+            playerGroup.children[1].material.color.set(myColorHex); 
         }
         
         // Color Picker Setup
         const cc = document.getElementById('color-picker-container');
-        const regCc = document.getElementById('reg-color-container');
-        playerColors.forEach(c => { 
-            const l=document.createElement('label'); l.className='cursor-pointer'; 
-            l.innerHTML=`<input type="radio" name="p_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform" style="background-color:${c.hex}; border:1px solid #ddd;"></div>`; 
-            if(cc) cc.appendChild(l); 
-            
-            const l2=document.createElement('label'); l2.className='cursor-pointer'; 
-            l2.innerHTML=`<input type="radio" name="reg_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform" style="background-color:${c.hex}; border:1px solid #ddd;"></div>`; 
-            if(regCc) regCc.appendChild(l2);
-        });
+        if (cc) {
+            playerColors.forEach(c => { 
+                const l=document.createElement('label'); l.className='cursor-pointer'; 
+                l.innerHTML=`<input type="radio" name="p_col" value="${c.hex}" class="color-radio sr-only" ${c.hex===myColorHex?'checked':''}><div class="w-10 h-10 rounded-full transition-transform shadow-sm" style="background-color:${c.hex}; border:2px solid #fff;"></div>`; 
+                cc.appendChild(l); 
+            });
+        }
 
-        // ---------------- AUTHENTICATION LOGIC ----------------
-        bindEvent('btn-to-register', 'click', () => { document.getElementById('auth-login').classList.add('hidden-panel'); document.getElementById('auth-register').classList.remove('hidden-panel'); });
-        bindEvent('btn-to-login', 'click', () => { document.getElementById('auth-register').classList.add('hidden-panel'); document.getElementById('auth-login').classList.remove('hidden-panel'); });
-        bindEvent('btn-to-forgot', 'click', () => { document.getElementById('auth-login').classList.add('hidden-panel'); document.getElementById('auth-forgot').classList.remove('hidden-panel'); });
-        bindEvent('btn-forgot-to-login', 'click', () => { document.getElementById('auth-forgot').classList.add('hidden-panel'); document.getElementById('auth-login').classList.remove('hidden-panel'); });
-
-        bindEvent('form-register', 'submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('reg-email').value;
-            const pwd = document.getElementById('reg-password').value;
-            const name = filterText(document.getElementById('reg-name').value);
-            const colNode = document.querySelector('input[name="reg_col"]:checked');
-            const color = colNode ? colNode.value : '#ffeebb';
-            
-            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังสร้าง...";
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, email, pwd);
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', cred.user.uid), { name: name, color: color, email: email });
-            } catch(err) {
-                alert("เกิดข้อผิดพลาด: " + err.message);
-            }
-            btn.disabled = false; btn.innerText = "สร้างและเข้าเล่น";
-        });
-
-        bindEvent('form-login', 'submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pwd = document.getElementById('login-password').value;
-            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังตรวจสอบ...";
-            try { await signInWithEmailAndPassword(auth, email, pwd); } 
-            catch(err) { alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง"); }
-            btn.disabled = false; btn.innerText = "เข้าเล่นเกม";
-        });
-
-        bindEvent('form-forgot', 'submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('forgot-email').value;
-            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังส่ง...";
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert("ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย");
-                document.getElementById('btn-forgot-to-login').click();
-            } catch(err) { alert("เกิดข้อผิดพลาด: " + err.message); }
-            btn.disabled = false; btn.innerText = "ส่งลิงก์ไปที่อีเมล";
-        });
-
-        bindEvent('btn-logout', 'click', async () => {
-            try { await signOut(auth); setModal(document.getElementById('profile-modal'), false); } catch(err) {}
-        });
-
-        // ---------------- GAME INITIALIZATION ----------------
+        // ---------------- SIMPLE "NO PASSWORD" LOGIN LOGIC ----------------
+        
+        // Game Listeners Wrapper
         function startGameListeners() {
             const ol = document.getElementById('loading-overlay');
             if(ol) { ol.style.opacity='0'; setTimeout(()=>ol.classList.add('hidden-panel'),500); }
@@ -880,40 +758,101 @@
             onlinePlayers.clear();
         }
 
+        // App Initialization
         window.onload = async () => {
+            // Check local storage for existing identity
+            myDisplayName = localStorage.getItem('nature3DName') || '';
+            myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
+
+            const profModal = document.getElementById('profile-modal');
+            const btnCloseProf = document.getElementById('btn-close-profile');
+            const pTitle = document.getElementById('profile-modal-title');
+            const pSave = document.getElementById('btn-save-profile');
+
+            if (!myDisplayName) {
+                // Must enter name first
+                setModal(profModal, true);
+                if(btnCloseProf) btnCloseProf.classList.add('hidden-panel');
+                if(pTitle) pTitle.innerText = 'สร้างตัวละครใหม่';
+                if(pSave) pSave.innerText = 'เข้าสู่หมู่บ้าน';
+                // Stop loading overlay immediately since we need input
+                const ol = document.getElementById('loading-overlay');
+                if(ol) ol.classList.add('hidden-panel');
+            } else {
+                // Have name, hide profile modal, wait for Firebase
+                setModal(profModal, false);
+            }
+
+            try { 
+                if(typeof __initial_auth_token!=='undefined'&&__initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token); 
+                } else {
+                    await signInAnonymously(auth); // Use Anonymous Auth to allow immediate playing without passwords
+                }
+            } catch(e) {
+                console.error("Auth error:", e);
+            }
+
             onAuthStateChanged(auth, async (user) => {
                 if(user) {
-                    const profSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid));
-                    if(profSnap.exists()) {
-                        myDisplayName = profSnap.data().name; myColorHex = profSnap.data().color;
-                    } else {
-                        myDisplayName = localStorage.getItem('nature3DName') || getRandomName(user.uid); myColorHex = localStorage.getItem('nature3DColor') || '#ffeebb';
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid), {name: myDisplayName, color: myColorHex});
+                    currentUser = user;
+                    // If name is already set locally, we start directly
+                    if (myDisplayName) {
+                        updateId();
+                        startGameListeners();
                     }
-                    currentUser = user; updateId();
-                    document.getElementById('auth-overlay').classList.add('hidden-panel');
-                    startGameListeners();
                 } else {
-                    document.getElementById('auth-overlay').classList.remove('hidden-panel');
                     stopGameListeners();
                 }
             });
         };
 
-        // --- Profile Update ---
+        // --- Save / Update Profile (Login / Change Character) ---
         bindEvent('btn-show-profile', 'click', () => {
             const pName = document.getElementById('profile-name');
-            if(pName) pName.value = myDisplayName || getRandomName(currentUser?.uid || 'temp');
-            setModal(document.getElementById('profile-modal'), true);
+            if(pName) pName.value = myDisplayName;
+            
+            // Re-check color radio
+            document.querySelectorAll('input[name="p_col"]').forEach(r => {
+                if(r.value === myColorHex) r.checked = true;
+            });
+
+            const profModal = document.getElementById('profile-modal');
+            const btnCloseProf = document.getElementById('btn-close-profile');
+            const pTitle = document.getElementById('profile-modal-title');
+            const pSave = document.getElementById('btn-save-profile');
+            
+            setModal(profModal, true);
+            if(btnCloseProf) btnCloseProf.classList.remove('hidden-panel'); // Can close because they already have a character
+            if(pTitle) pTitle.innerText = 'เปลี่ยนตัวละคร';
+            if(pSave) pSave.innerText = 'บันทึกการเปลี่ยนแปลง';
         });
-        bindEvent('btn-close-profile', 'click', () => setModal(document.getElementById('profile-modal'), false));
+
+        bindEvent('btn-close-profile', 'click', () => {
+            if(myDisplayName) setModal(document.getElementById('profile-modal'), false);
+        });
+
         bindEvent('btn-save-profile', 'click', async () => { 
             const pName = document.getElementById('profile-name');
-            if(pName) myDisplayName = filterText(pName.value.trim()); 
-            const s = document.querySelector('input[name="p_col"]:checked'); if(s) myColorHex = s.value; 
-            localStorage.setItem('nature3DName', myDisplayName); localStorage.setItem('nature3DColor', myColorHex); 
-            updateId(); setModal(document.getElementById('profile-modal'), false); 
-            if(currentUser) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', currentUser.uid), { name: myDisplayName, color: myColorHex }, {merge: true}); }
+            if(!pName || !pName.value.trim()) {
+                alert("กรุณาใส่ชื่อตัวละครของคุณ");
+                return;
+            }
+
+            myDisplayName = filterText(pName.value.trim()); 
+            const s = document.querySelector('input[name="p_col"]:checked'); 
+            if(s) myColorHex = s.value; 
+            
+            localStorage.setItem('nature3DName', myDisplayName); 
+            localStorage.setItem('nature3DColor', myColorHex); 
+            
+            updateId(); 
+            setModal(document.getElementById('profile-modal'), false); 
+            
+            // If they are anonymous and just created a character, start listening to DB
+            if(currentUser && !isAnimating) {
+                startGameListeners();
+            }
         });
         
         document.querySelectorAll('.tool-btn').forEach(b => b.addEventListener('click', ()=>{ document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); buildMode=b.dataset.tool; gridHelper.visible=(buildMode==='road'||buildMode==='fence'); previewBox.visible=false; }));
@@ -994,7 +933,7 @@
         bindEvent('wish-form', 'submit', async e => { 
             e.preventDefault(); const wInp = document.getElementById('wish-input'); 
             const t = filterText(wInp?.value.trim() || ''); if(!t) return; if(wInp) wInp.value=''; 
-            try{await addDoc(collection(db,'artifacts',appId,'public','data','wishes'),{text:t,userId:currentUser?.uid,userName:myDisplayName||getRandomName(currentUser?.uid||'x'),createdAt:serverTimestamp()});}catch(er){} 
+            try{await addDoc(collection(db,'artifacts',appId,'public','data','wishes'),{text:t,userId:currentUser?.uid,userName:myDisplayName,createdAt:serverTimestamp()});}catch(er){} 
         });
 
         // Quiz Handling
@@ -1044,7 +983,7 @@
         bindEvent('chat-form', 'submit', async e => { 
             e.preventDefault(); const cInp = document.getElementById('chat-input'); const t = filterText(cInp?.value.trim() || ''); 
             if(!t||!currentUser||!currentActiveRoom) return; if(cInp) cInp.value=''; 
-            try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName||getRandomName(currentUser.uid),userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
+            try{await addDoc(collection(db,'artifacts',appId,'public','data','messages'),{roomId:currentActiveRoom.id,text:t,userId:currentUser.uid,userName:myDisplayName,userColor:myColorHex,createdAt:serverTimestamp()});}catch(err){} 
         });
 
     </script>
